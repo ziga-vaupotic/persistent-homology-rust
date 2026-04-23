@@ -1,4 +1,4 @@
-#[derive(Debug, Clone, PartialEq, Eq, Hash)]
+#[derive(Debug, Clone, PartialEq)]
 pub struct Simplex {
     pub vertices: Vec<usize>,
     pub filtration_value: f64,
