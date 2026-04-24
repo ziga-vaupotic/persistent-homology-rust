@@ -3,4 +3,13 @@ name = "vietoris-rips-rust"
 version = "0.1.0"
 edition = "2024"
 
+[lib]
+name = "vietoris_rips_rust"
+path = "src/lib.rs"
+
+[[bin]]
+name = "vietoris-rips-rust"
+path = "src/main.rs"
+
 [dependencies]
+itertools = "0.12"

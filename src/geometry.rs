@@ -1,9 +1,17 @@
 #[derive(Debug, Clone, PartialEq)]
-pub struct Point<const D: usize> {
-    pub coords: [f64; D],
+pub struct Point {
+    pub coords: Vec<f64>,
 }
 
-impl<const D: usize> Point<D> {
+impl Point {
+    pub fn new(coords: Vec<f64>) -> Self {
+        Self { coords }
+    }
+
+    pub fn dimension(&self) -> usize {
+        self.coords.len()
+    }
+
     pub fn distance(&self, other: &Self) -> f64 {
         self.coords
             .iter()
@@ -17,7 +25,7 @@ impl<const D: usize> Point<D> {
 
 #[test]
 fn test_distance_2d() {
-    let a = Point::<2> { coords: [0.0, 0.0] };
-    let b = Point::<2> { coords: [3.0, 4.0] };
+    let a = Point::new(vec![0.0, 0.0]);
+    let b = Point::new(vec![3.0, 4.0]);
     assert_eq!(a.distance(&b), 5.0);
 }
