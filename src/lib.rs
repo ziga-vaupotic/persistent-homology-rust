@@ -1,4 +1,3 @@
+pub mod algebra;
 pub mod geometry;
-pub mod simplex;
-pub mod boundary;
-pub mod vietoris;
+pub mod topology;
