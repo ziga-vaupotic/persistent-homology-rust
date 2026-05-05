@@ -1,10 +1,12 @@
 use crate::geometry::point::Point;
+use crate::geometry::point_set::PointSet;
+
 use crate::topology::simplex::Simplex;
 use crate::topology::filtration::Filtration;
 
 use itertools::Itertools;
 
-pub fn vietoris_rips(points: &[Point], max_dim: usize) -> Filtration {
+pub fn vietoris_rips(points: &PointSet, max_dim: usize) -> Filtration {
     let mut simplices = Vec::new();
     let n = points.len();
 
@@ -16,7 +18,7 @@ pub fn vietoris_rips(points: &[Point], max_dim: usize) -> Filtration {
             for &i in &combo {
                 for &j in &combo {
                     if i < j {
-                        let d = points[i].distance(&points[j]);
+                        let d = points.get(i).distance(&points.get(j));
                         if d > max_dist {
                             max_dist = d;
                         }
@@ -53,7 +55,12 @@ mod tests {
             Point::new(vec![0.5, (3.0_f64).sqrt() / 2.0]),
         ];
 
-        let filtration = vietoris_rips(&points, 2);
+        let pointset = match PointSet::new(points) {
+            Ok(ps) => ps,
+            Err(_) => panic!(),
+        };
+
+        let filtration = vietoris_rips(&pointset, 2);
 
         // Should have 3 0-simplices, 3 1-simplices, 1 2-simplex
         assert_eq!(filtration.simplices.len(), 7);
@@ -77,7 +84,13 @@ mod tests {
     #[test]
     fn test_vietoris_rips_single_point() {
         let points = vec![Point::new(vec![0.0, 0.0])];
-        let filtration = vietoris_rips(&points, 2);
+
+        let pointset = match PointSet::new(points) {
+            Ok(ps) => ps,
+            Err(_) => panic!(),
+        };
+
+        let filtration = vietoris_rips(&pointset, 2);
 
         assert_eq!(filtration.simplices.len(), 1);
         assert_eq!(filtration.simplices[0].vertices, vec![0]);
