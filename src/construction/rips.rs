@@ -1,5 +1,7 @@
-use crate::geometry::Point;
-use crate::simplex::{Simplex, Filtration};
+use crate::geometry::point::Point;
+use crate::topology::simplex::Simplex;
+use crate::topology::filtration::Filtration;
+
 use itertools::Itertools;
 
 pub fn vietoris_rips(points: &[Point], max_dim: usize) -> Filtration {
