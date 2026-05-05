@@ -25,7 +25,7 @@ pub fn vietoris_rips(points: &PointSet, max_dim: usize) -> Filtration {
                     }
                 }
             }
-            let filtration_value = max_dist / 2.0;
+            let filtration_value = max_dist;
             let simplex = Simplex::new(combo, filtration_value);
             simplices.push(simplex);
         }
@@ -55,10 +55,7 @@ mod tests {
             Point::new(vec![0.5, (3.0_f64).sqrt() / 2.0]),
         ];
 
-        let pointset = match PointSet::new(points) {
-            Ok(ps) => ps,
-            Err(_) => panic!(),
-        };
+        let pointset = PointSet::new(points).expect("Pointset couldn't be generated.");
 
         let filtration = vietoris_rips(&pointset, 2);
 
@@ -85,10 +82,7 @@ mod tests {
     fn test_vietoris_rips_single_point() {
         let points = vec![Point::new(vec![0.0, 0.0])];
 
-        let pointset = match PointSet::new(points) {
-            Ok(ps) => ps,
-            Err(_) => panic!(),
-        };
+        let pointset = PointSet::new(points).expect("Pointset couldn't be generated.");
 
         let filtration = vietoris_rips(&pointset, 2);
 

@@ -20,5 +20,5 @@ def save_csv(points, filename="data.csv"):
         writer = csv.writer(f)
         writer.writerows(points)
 
-data = circle(n=50, noise=0.03)
+data = spiral(n=100, noise=0.2)
 save_csv(data, "data.csv")
