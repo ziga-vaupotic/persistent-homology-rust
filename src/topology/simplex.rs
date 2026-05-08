@@ -1,7 +1,7 @@
 #[derive(Debug, Clone)]
 pub struct Simplex {
     pub vertices: Vec<usize>,
-    pub filtration_value: f64,
+    pub filtration_value: f64, // this can be implemented as a trait instead later on!
 }
 
 use std::hash::{Hash, Hasher};
