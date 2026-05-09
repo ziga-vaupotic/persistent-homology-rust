@@ -1,3 +1,3 @@
-pub mod reduction;
-pub mod boundary_matrix;
-pub mod types;
+pub mod discretisation;
+pub mod matrices;
+pub mod betti;

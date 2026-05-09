@@ -1,6 +1,7 @@
-use crate::algebra::boundary_matrix::build_boundary_matrices;
-use crate::algebra::reduction::reduce_matrix;
-use crate::topology::Filtration;
+use crate::algebra::discretisation::build_boundary_matrices;
+use crate::algebra::matrices::{BoundaryMatrix, BoundaryMatrices};
+use crate::topology::filtration::Filtration;
+
 
 pub fn compute_betti_numbers(filtration: &Filtration) -> Vec<usize> {
     let mut matrices = build_boundary_matrices(filtration);
@@ -8,7 +9,7 @@ pub fn compute_betti_numbers(filtration: &Filtration) -> Vec<usize> {
     let mut ranks = vec![0; matrices.len() + 1];
 
     for (i, matrix) in matrices.iter_mut().enumerate() {
-        ranks[i + 1] = reduce_matrix(matrix);
+        ranks[i + 1] = matrix.rank();
     }
 
     let max_dim = filtration
