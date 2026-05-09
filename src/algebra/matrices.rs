@@ -77,6 +77,8 @@ impl BoundaryMatrix {
         (BoundaryMatrix { columns: matrix }, low)
     }
 
+
+    // Computes ranks of the largest chain complex
     pub fn rank(&self) -> usize {
         let (_, low) = self.reduce();
         low.into_iter().filter(|x| x.is_some()).count()
