@@ -3,6 +3,7 @@ use vietoris_rips_rust::io::csv::{import_point_set, export_filtration_csv};
 use vietoris_rips_rust::construction::rips::vietoris_rips;
 
 use std::path::Path;
+
 fn main() {
     let path = std::path::Path::new("data.csv");
 

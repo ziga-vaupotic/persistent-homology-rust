@@ -1,3 +1,6 @@
+
+// Gaussian elimination over Z2
+
 pub fn reduce_matrix(matrix: &mut Vec<Vec<usize>>) -> usize {
 
     let mut max_row = 0;

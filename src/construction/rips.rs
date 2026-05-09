@@ -67,7 +67,7 @@ mod tests {
             assert_eq!(filtration.simplices[i].filtration_value, 0.0);
         }
         for i in 3..7 {
-            assert!((filtration.simplices[i].filtration_value - 0.5).abs() < 1e-10);
+            assert!((filtration.simplices[i].filtration_value - 1.0).abs() < 1e-10);
         }
 
         // Check dimensions

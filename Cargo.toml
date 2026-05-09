@@ -1,5 +1,5 @@
 [package]
-name = "vietoris-rips-rust"
+name = "persistent-homology-rust"
 version = "0.1.0"
 edition = "2024"
 
@@ -7,9 +7,6 @@ edition = "2024"
 name = "vietoris_rips_rust"
 path = "src/lib.rs"
 
-[[bin]]
-name = "vietoris-rips-rust"
-path = "src/main.rs"
 
 [dependencies]
 itertools = "0.14"
