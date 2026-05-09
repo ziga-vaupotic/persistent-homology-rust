@@ -50,30 +50,35 @@ def split_simplices(simplices):
 
 def plot(points, simplices_pts, edges, triangles):
 
+    fig, ax = plt.subplots()
+
     for i in simplices_pts:
         x, y = points[i]
-        plt.scatter(x, y, color='black')
+        ax.scatter(x, y, color='tab:green')
 
     for i, j in edges:
         x = [points[i][0], points[j][0]]
         y = [points[i][1], points[j][1]]
-        plt.plot(x, y, color='blue')
+        ax.plot(x, y, color='tab:blue')
 
     for i, j, k in triangles:
         xs = [points[i][0], points[j][0], points[k][0]]
         ys = [points[i][1], points[j][1], points[k][1]]
-        plt.fill(xs, ys, alpha=0.2, color='red')
+        ax.fill(xs, ys, alpha=0.2, color='grey')
 
-    plt.gca().set_aspect('equal')
-    plt.title("Vietoris–Rips filtration at fixed ε")
-    plt.show()
+    ax.axis('off')
+    ax.set_aspect('equal')
+    #plt.title("Vietoris–Rips filtration at fixed ε")
+    #plt.show()
+
+    plt.savefig("logo.png", dpi=500, transparent=True)
 
 
 if __name__ == "__main__":
-    points = load_points("../data.csv")
-    simplices = load_filtration("../filtration.csv")
+    points = load_points("../../data.csv")
+    simplices = load_filtration("../../filtration.csv")
 
-    eps = 2
+    eps = 2.4
 
     filtered = at_scale(simplices, eps)
     p_ids, edges, triangles = split_simplices(filtered)

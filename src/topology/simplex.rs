@@ -14,11 +14,13 @@ impl PartialEq for Simplex {
 
 impl Eq for Simplex {}
 
+/* This will be used for indexing when computing homology */
 impl Hash for Simplex {
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.vertices.hash(state);
     }
 }
+
 impl Simplex {
     pub fn new(vertices: Vec<usize>, filtration_value: f64) -> Self {
         let mut verts = vertices;

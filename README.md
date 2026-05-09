@@ -1,4 +1,10 @@
-# Vietoris-Rips Persistent Homology in Rust
+![image](logo.png)
 
-An implementation of the Vietoris-Rips complex in Rust for computing persistent homology on point clouds in $\mathbb{R}^2$ and $\mathbb{R}^3$. The project is a part of the Programiranje 2 course at Faculty of Mathematics and Physics in Ljubljana. The Vietoris-Rips complex is one of the core algorithms of topological data analysis. By considering a set of points $X$ in $\mathbb{R}^2$ or $\mathbb{R}^3$, the Vietoris-Rips complex at a scale $\varepsilon$ includes a simplex when all pairwise distances are $\le 2\varepsilon$. As $\varepsilon$ increases we obtain a filtration $\emptyset \le Rips(\epsilon_0) \le Rips(\epsilon_1) \le \dots \le Rips(\infty)$. From this filtration one can compute the persistent homology groups $H_0$ (connected components), $H_1$ (loops) and $H_2$ (voids). The main goal of this project is thus to construct these homology groups given a set $X$ and compute their corresponding Betti numbers.
+The project servers as a lightweight implementation of persistent homology. The project is a part of the Programiranje 2 course at Faculty of Mathematics and Physics in Ljubljana.
+
+Examples can be found in the 
+
+
+# Features
+
 
