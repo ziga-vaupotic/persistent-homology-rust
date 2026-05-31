@@ -1,5 +1,6 @@
 use plotters::prelude::*;
 use vietoris_rips_rust::algebra::discretisation::build_boundary_matrices;
+use vietoris_rips_rust::algebra::discretisation::reduce_boundary_matrices;
 use vietoris_rips_rust::algebra::persistence::compute_persistence_diagram;
 use vietoris_rips_rust::construction::rips::vietoris_rips;
 use vietoris_rips_rust::io::csv::import_point_set;
@@ -25,28 +26,34 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut diagram_points: Vec<PersistencePoint> = Vec::new();
     let mut max_filtration: f64 = 0.0;
 
-    // Process each boundary matrix to get persistence pairs
-    for (matrix_idx, matrix) in matrices.iter().enumerate() {
-        let hom_dim = matrix_idx;
-        let (_, low) = matrix.reduce();
-        let persistence: vietoris_rips_rust::algebra::persistence::PersistenceDiagram = compute_persistence_diagram(matrix, &low);
 
-        // Convert indices to filtration values
-        for pair in &persistence.pairs {
-            let birth_value = filtration.simplices[pair.birth].filtration_value;
-            let death_value = pair
-                .death
-                .map(|idx| filtration.simplices[idx].filtration_value)
-                .unwrap_or(birth_value * 1.5);
+    let matrices = build_boundary_matrices(&filtration);
 
-            max_filtration = max_filtration.max(death_value);
-            diagram_points.push(PersistencePoint {
-                birth: birth_value,
-                death: death_value,
-                hom_dim,
-                infinite: pair.death.is_none(),
-            });
-        }
+    let reduced_matrices = reduce_boundary_matrices(&matrices);
+
+    let persistence = compute_persistence_diagram(&reduced_matrices);
+
+
+    for pair in &persistence.pairs {
+
+        let (death, infinite) = match pair.death {
+            Some(d) => (
+                filtration.simplices[d].filtration_value,
+                false,
+            ),
+            None => (
+                f64::INFINITY, // or filtration.max_eps, etc.
+                true,
+            ),
+        };
+
+        diagram_points.push(PersistencePoint {
+            birth: filtration.simplices[pair.birth].filtration_value,
+            death: death,
+            hom_dim: pair.dimension,
+            infinite: infinite,
+        });
+
     }
 
     let margin = 0.1 * max_filtration;

@@ -74,19 +74,5 @@ def save_csv(points, filename="data.csv"):
 
 data = mobius(n=500, noise=0)
 
-#pts = data
-
-#fig = plt.figure(figsize=(8,8))
-#ax = fig.add_subplot(111, projection='3d')
-#
-#ax.scatter(
-#    pts[:,0],
-#    pts[:,1],
-#    pts[:,2],
-#    s=1
-#)
-#
-#plt.show()
-
 
 save_csv(data, "../../data.csv")

@@ -61,4 +61,7 @@ def save_csv(points, filename="data.csv"):
 #data = spiral(n=100, noise=0.3)
 data = figure_eight(n=100, noise=0.02, radius=1.0, separation=1.8)
 #data = ring(n=500, r_inner=2.0, r_outer=4.0, noise=0.3)
-save_csv(data, "../../data.csv")
+save_csv(figure_eight(n=100, noise=0.02, radius=1.0, separation=1.8), "../data/figure_eight.csv")
+save_csv(ring(n=100, noise=0.02), "../data/ring.csv")
+save_csv(spiral(n=100, noise=0.02), "../data/spiral.csv")
+save_csv(circle(n=50), "../data/circle.csv")

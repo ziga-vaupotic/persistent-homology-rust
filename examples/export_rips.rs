@@ -7,14 +7,20 @@ use vietoris_rips_rust::construction::rips::vietoris_rips;
 use std::path::Path;
 
 fn main() {
-    let path = std::path::Path::new("data.csv");
+
+    let path_name = "spiral";
+    let path_data = format!("examples/data/{}.csv", path_name);
+    let path = std::path::Path::new(&path_data);
 
     let pointset = import_point_set::<2>(path)
         .expect("Failed to read CSV");
 
     let filtration = vietoris_rips(&pointset, 2, None);
 
-    export_filtration_csv("filtration.csv", &filtration).expect("Failed to export filtration!");
+
+
+    let path_filtration = format!("examples/data/{}_filtration.csv", path_name);
+    export_filtration_csv(&path_filtration, &filtration).expect("Failed to export filtration!");
 
     let matrices = build_boundary_matrices(&filtration);
 
@@ -22,5 +28,7 @@ fn main() {
 
     let persistence = compute_persistence_diagram(&reduced_matrices);
 
-    export_persistence_csv("persistence.csv", &persistence).expect("Failed to export persistence!");
+    let path_persistence = format!("examples/data/{}_persistence.csv", path_name);
+
+    export_persistence_csv(&path_persistence, &persistence).expect("Failed to export persistence!");
 }
