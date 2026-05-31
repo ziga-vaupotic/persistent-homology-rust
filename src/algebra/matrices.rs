@@ -7,6 +7,10 @@
 pub struct BoundaryMatrix {
     columns: Vec<Vec<usize>>,
 }
+pub struct ReducedBoundaryMatrix {
+    pub matrix: BoundaryMatrix,
+    pub low: Vec<Option<usize>>,
+}
 
 impl BoundaryMatrix {
     pub fn new(mut columns: Vec<Vec<usize>>) -> Self {
@@ -23,7 +27,7 @@ impl BoundaryMatrix {
         &self.columns
     }
 
-    pub fn reduce(&self) -> (BoundaryMatrix, Vec<Option<usize>>) {
+    pub fn reduce(&self) -> ReducedBoundaryMatrix {
         let mut matrix = self.columns.clone();
 
         let mut max_row = 0;
@@ -74,18 +78,19 @@ impl BoundaryMatrix {
         }
 
         // return pivots aswell
-        (BoundaryMatrix { columns: matrix }, low)
+        ReducedBoundaryMatrix{matrix: BoundaryMatrix { columns: matrix },low: low}
     }
 
 
     // Computes ranks of the largest chain complex
     pub fn rank(&self) -> usize {
-        let (_, low) = self.reduce();
-        low.into_iter().filter(|x| x.is_some()).count()
+        self.reduce().low.into_iter().filter(|x| x.is_some()).count()
     }
 
 }
 pub type BoundaryMatrices = Vec<BoundaryMatrix>;
+pub type ReducedBoundaryMatrices = Vec<ReducedBoundaryMatrix>;
+
 
 #[cfg(test)]
 mod tests {
@@ -146,9 +151,7 @@ mod tests {
             vec![0, 1],
         ]);
 
-        let (_, low) = bm.reduce();
-
-        let rank_from_low = low.iter().filter(|x| x.is_some()).count();
+        let rank_from_low = bm.reduce().low.iter().filter(|x| x.is_some()).count();
         let rank_direct = bm.rank();
 
         assert_eq!(rank_from_low, rank_direct);
@@ -162,9 +165,9 @@ mod tests {
             vec![2],
         ]);
 
-        let (_, low) = bm.reduce();
+        let reduce = bm.reduce();
 
-        for pivot in low.iter().flatten() {
+        for pivot in reduce.low.iter().flatten() {
             assert!(*pivot < bm.columns().len());
         }
     }

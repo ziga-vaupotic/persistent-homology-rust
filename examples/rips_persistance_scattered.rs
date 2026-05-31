@@ -18,7 +18,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let path = Path::new("data.csv");
 
     let pointset = import_point_set::<2>(path)?;
-    let filtration = vietoris_rips(&pointset, 2);
+    let filtration = vietoris_rips(&pointset, 2, None);
 
     let matrices = build_boundary_matrices(&filtration);
     
@@ -29,7 +29,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     for (matrix_idx, matrix) in matrices.iter().enumerate() {
         let hom_dim = matrix_idx;
         let (_, low) = matrix.reduce();
-        let persistence = compute_persistence_diagram(matrix, &low);
+        let persistence: vietoris_rips_rust::algebra::persistence::PersistenceDiagram = compute_persistence_diagram(matrix, &low);
 
         // Convert indices to filtration values
         for pair in &persistence.pairs {

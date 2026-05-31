@@ -9,7 +9,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let path = Path::new("data.csv");
 
     let pointset = import_point_set::<2>(path)?;
-    let filtration = vietoris_rips(&pointset, 2);
+    let filtration = vietoris_rips(&pointset, 2, None);
     let epsilon = 15.0;
     let complex_at_epsilon = filtration.get_simplicial_complex(epsilon);
 

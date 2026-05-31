@@ -1,6 +1,6 @@
-use crate::algebra::matrices::{BoundaryMatrix, BoundaryMatrices};
-
+use crate::algebra::matrices::{BoundaryMatrices, BoundaryMatrix, ReducedBoundaryMatrix, ReducedBoundaryMatrices};
 pub struct PersistencePair {
+    pub dimension: usize,
     pub birth: usize,
     pub death: Option<usize>,
 }
@@ -9,36 +9,52 @@ pub struct PersistenceDiagram {
     pub pairs: Vec<PersistencePair>,
 }
 
-
-pub fn compute_persistence_diagram(
-    matrix: &BoundaryMatrix,
-    low: &[Option<usize>],
-) -> PersistenceDiagram {
-    let num_cols = matrix.columns().len();
+pub fn compute_persistence(
+    matrix: &ReducedBoundaryMatrix,
+    dimension: usize,
+) -> Vec<PersistencePair> {
+    let num_cols = matrix.matrix.columns().len();
 
     let mut pairs = Vec::new();
-    let mut is_birth = vec![false; num_cols];
+    let mut paired_births = vec![false; num_cols];
 
-    // births → deaths
-    for (row, &col) in low.iter().enumerate() {
-        if let Some(birth_col) = col {
-            is_birth[birth_col] = true;
+    // Finite intervals
+    for (death_col, &birth_col) in matrix.low.iter().enumerate() {
+        if let Some(birth_col) = birth_col {
+            paired_births[birth_col] = true;
 
             pairs.push(PersistencePair {
+                dimension,
                 birth: birth_col,
-                death: Some(row),
+                death: Some(death_col),
             });
         }
     }
 
-    // infinite classes
-    for col in 0..num_cols {
-        if !is_birth[col] {
+    // Infinite intervals
+    for birth_col in 0..num_cols {
+        if !paired_births[birth_col] {
             pairs.push(PersistencePair {
-                birth: col,
+                dimension,
+                birth: birth_col,
                 death: None,
             });
         }
+    }
+
+    pairs
+}
+
+pub fn compute_persistence_diagram(
+    matrices: &ReducedBoundaryMatrices
+) -> PersistenceDiagram {
+    let mut pairs = Vec::new();
+
+    for (dimension, matrix) in matrices.iter().enumerate() {
+        pairs.extend(compute_persistence(
+            matrix,
+            dimension,
+        ));
     }
 
     PersistenceDiagram { pairs }

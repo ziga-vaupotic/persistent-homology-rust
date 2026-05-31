@@ -1,7 +1,7 @@
 use crate::topology::filtration::Filtration;
 use crate::topology::simplex::Simplex;
 
-use crate::algebra::matrices::{BoundaryMatrix, BoundaryMatrices};
+use crate::algebra::matrices::{BoundaryMatrices, BoundaryMatrix, ReducedBoundaryMatrices, ReducedBoundaryMatrix};
 
 
 use std::collections::HashMap;
@@ -54,5 +54,17 @@ pub fn build_boundary_matrices(
     }
 
     matrices
+}
+
+
+pub fn reduce_boundary_matrices(
+    matrices: &BoundaryMatrices,
+) -> ReducedBoundaryMatrices {
+    matrices
+        .iter()
+        .map(|matrix| {
+            matrix.reduce()
+        })
+        .collect()
 }
 
