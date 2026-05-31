@@ -1,4 +1,6 @@
 use crate::algebra::matrices::{BoundaryMatrices, BoundaryMatrix, ReducedBoundaryMatrix, ReducedBoundaryMatrices};
+use std::collections::HashSet;
+
 pub struct PersistencePair {
     pub dimension: usize,
     pub birth: usize,
@@ -13,32 +15,40 @@ pub fn compute_persistence(
     matrix: &ReducedBoundaryMatrix,
     dimension: usize,
 ) -> Vec<PersistencePair> {
-    let num_cols = matrix.matrix.columns().len();
-
     let mut pairs = Vec::new();
-    let mut paired_births = vec![false; num_cols];
+
+    // Birth simplices that get killed
+    let mut paired_births = HashSet::new();
 
     // Finite intervals
-    for (death_col, &birth_col) in matrix.low.iter().enumerate() {
-        if let Some(birth_col) = birth_col {
-            paired_births[birth_col] = true;
+    for (local_col, pivot_row) in matrix.low.iter().enumerate() {
+        if let Some(birth) = pivot_row {
+            let death = matrix.matrix.column_indices[local_col];
+
+            paired_births.insert(*birth);
 
             pairs.push(PersistencePair {
                 dimension,
-                birth: birth_col,
-                death: Some(death_col),
+                birth: *birth,
+                death: Some(death),
             });
         }
     }
 
-    // Infinite intervals
-    for birth_col in 0..num_cols {
-        if !paired_births[birth_col] {
-            pairs.push(PersistencePair {
-                dimension,
-                birth: birth_col,
-                death: None,
-            });
+    // Infinite intervals:
+    // zero reduced columns whose birth simplex
+    // never appears as a pivot row.
+    for (local_col, col) in matrix.matrix.columns.iter().enumerate() {
+        if col.is_empty() {
+            let birth = matrix.matrix.column_indices[local_col];
+
+            if !paired_births.contains(&birth) {
+                pairs.push(PersistencePair {
+                    dimension,
+                    birth,
+                    death: None,
+                });
+            }
         }
     }
 

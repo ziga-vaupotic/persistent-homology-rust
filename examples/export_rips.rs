@@ -9,10 +9,10 @@ use std::path::Path;
 fn main() {
     let path = std::path::Path::new("data.csv");
 
-    let pointset = import_point_set::<3>(path)
+    let pointset = import_point_set::<2>(path)
         .expect("Failed to read CSV");
 
-    let filtration = vietoris_rips(&pointset, 2, Some(0.1));
+    let filtration = vietoris_rips(&pointset, 2, None);
 
     export_filtration_csv("filtration.csv", &filtration).expect("Failed to export filtration!");
 

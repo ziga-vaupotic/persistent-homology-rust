@@ -56,6 +56,7 @@ def plot(points, simplices_pts, edges, triangles):
         x, y = points[i]
         ax.scatter(x, y, color='tab:green')
 
+
     for i, j in edges:
         x = [points[i][0], points[j][0]]
         y = [points[i][1], points[j][1]]
@@ -71,14 +72,14 @@ def plot(points, simplices_pts, edges, triangles):
     #plt.title("Vietoris–Rips filtration at fixed ε")
     #plt.show()
 
-    plt.savefig("logo.png", dpi=500, transparent=True)
+    plt.show()
 
 
 if __name__ == "__main__":
     points = load_points("../../data.csv")
     simplices = load_filtration("../../filtration.csv")
 
-    eps = 2.4
+    eps = 0.3
 
     filtered = at_scale(simplices, eps)
     p_ids, edges, triangles = split_simplices(filtered)

@@ -17,40 +17,54 @@ pub fn build_boundary_matrices(
 
     for simplex in &filtration.simplices {
         let d = simplex.dimension();
+
         if d >= by_dim.len() {
             by_dim.resize(d + 1, Vec::new());
         }
+
         by_dim[d].push(simplex);
     }
 
+    // Global filtration index of every simplex
+    let simplex_to_index: HashMap<&Simplex, usize> =
+        filtration
+            .simplices
+            .iter()
+            .enumerate()
+            .map(|(i, s)| (s, i))
+            .collect();
 
-    // to each simplex we attach a hash to index them
-
-    let mut simplex_to_index: HashMap<&Simplex, usize> = HashMap::new();
-    for (i, simplex) in filtration.simplices.iter().enumerate() {
-        simplex_to_index.insert(simplex, i);
-    }
-
-    let mut matrices: BoundaryMatrices = Vec::new();
+    let mut matrices = Vec::new();
 
     for k in 1..by_dim.len() {
-
-        // boundary matrix takes d-dimensioanl simplexes to d-1 dim simplexes.
-
         let cols = &by_dim[k];
 
-        let mut columns: Vec<Vec<usize>> = vec![Vec::new(); cols.len()];
+        let mut columns = Vec::with_capacity(cols.len());
+        let mut column_indices = Vec::with_capacity(cols.len());
 
-        for (j, &simplex) in cols.iter().enumerate() {
-            for (_, sub) in simplex.boundary() {
-                if let Some(&row_idx) = simplex_to_index.get(&sub) {
-                    columns[j].push(row_idx);
+        for simplex in cols {
+            let mut column = Vec::new();
+
+            for (_, face) in simplex.boundary() {
+                if let Some(&row_idx) = simplex_to_index.get(&face) {
+                    column.push(row_idx);
                 }
             }
-            columns[j].sort();
+
+            column.sort();
+
+            columns.push(column);
+
+            // Store the GLOBAL filtration index
+            column_indices.push(simplex_to_index[simplex]);
         }
 
-        matrices.push(BoundaryMatrix::new(columns));
+        matrices.push(
+            BoundaryMatrix {
+                columns,
+                column_indices,
+            }
+        );
     }
 
     matrices
