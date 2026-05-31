@@ -104,8 +104,6 @@ def plot(points, simplices_pts, edges, triangles, tetrahedra):
 
     ax.axis('off')
     ax.set_aspect('equal')
-    #plt.title("Vietoris–Rips filtration at fixed ε")
-    #plt.show()
 
     plt.show()
     plt.savefig("filtration_plot_3d.png", dpi=500)

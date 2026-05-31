@@ -72,7 +72,6 @@ def save_csv(points, filename="data.csv"):
         writer = csv.writer(f)
         writer.writerows(points)
 
-data = mobius(n=500, noise=0)
-
-
-save_csv(data, "../../data.csv")
+save_csv(mobius(n=500, noise=0), "../data/mobius.csv")
+save_csv(double_torus(n=500, noise=0.2), "../data/double_torus.csv")
+save_csv(torus(n=500, noise=0.2), "../data/torus.csv")
