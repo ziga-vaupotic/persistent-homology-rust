@@ -3,6 +3,8 @@ use crate::geometry::point::Point;
 use crate::geometry::point_set::PointSet;
 
 use crate::topology::filtration::Filtration;
+use crate::algebra::persistence::{PersistenceDiagram};
+
 
 use csv;
 
@@ -59,5 +61,23 @@ pub fn export_filtration_csv(
         writeln!(file)?;
     }
 
+    Ok(())
+}
+
+pub fn export_persistence_csv(
+    path: &str,
+    persistence: &PersistenceDiagram,
+) -> Result<(), Box<dyn Error>> {
+    let mut file = File::create(path)?;
+
+    for pair in &persistence.pairs {
+        write!(file, "{},", pair.dimension)?;
+        write!(file, "{},", pair.birth)?;
+        match pair.death {
+            Some(death) => write!(file, "{}", death)?,
+            None => write!(file, "")?, // Infinite death: leave empty
+        }
+        writeln!(file)?;
+    }
     Ok(())
 }

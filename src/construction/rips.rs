@@ -6,29 +6,43 @@ use crate::topology::filtration::Filtration;
 
 use itertools::Itertools;
 
-pub fn vietoris_rips(points: &PointSet, max_dim: usize) -> Filtration {
+pub fn vietoris_rips(points: &PointSet, max_dim: usize, max_epsilon: Option<f64>) -> Filtration {
+    let max_epsilon = max_epsilon.unwrap_or(f64::MAX);
+
     let mut simplices = Vec::new();
     let n = points.len();
+
+
+    // precompute distance in a distance matrix
+
+    let mut dist = vec![vec![0.0; n]; n];
+
+    for i in 0..n {
+        for j in (i + 1)..n {
+            let d = points.get(i).distance(&points.get(j));
+            dist[i][j] = d;
+            dist[j][i] = d;
+        }
+    }
+
 
     // Generate simplices of dimension 0 to max_dim
     for dim in 0..=max_dim {
         for combo in (0..n).combinations(dim + 1) {
-            // Compute max pairwise distance
-            let mut max_dist = 0.0;
-            for &i in &combo {
-                for &j in &combo {
-                    if i < j {
-                        let d = points.get(i).distance(&points.get(j));
-                        if d > max_dist {
-                            max_dist = d;
-                        }
-                    }
-                }
-            }
-            let filtration_value = max_dist;
-            let simplex = Simplex::new(combo, filtration_value);
-            simplices.push(simplex);
+        let mut max_dist: f64 = 0.0;
+
+        let valid = combo.iter().enumerate().all(|(a, &i)| {
+            combo[a + 1..].iter().all(|&j| {
+                let d = dist[i][j];
+                max_dist = max_dist.max(d);
+                d <= max_epsilon
+            })
+        });
+
+        if valid {
+            simplices.push(Simplex::new(combo, max_dist));
         }
+}
     }
 
     // Sort simplices by filtration_value, then by dimension, then by vertices
@@ -57,7 +71,7 @@ mod tests {
 
         let pointset = PointSet::new(points).expect("Pointset couldn't be generated.");
 
-        let filtration = vietoris_rips(&pointset, 2);
+        let filtration = vietoris_rips(&pointset, 2, None);
 
         // Should have 3 0-simplices, 3 1-simplices, 1 2-simplex
         assert_eq!(filtration.simplices.len(), 7);
@@ -84,7 +98,7 @@ mod tests {
 
         let pointset = PointSet::new(points).expect("Pointset couldn't be generated.");
 
-        let filtration = vietoris_rips(&pointset, 2);
+        let filtration = vietoris_rips(&pointset, 2, None);
 
         assert_eq!(filtration.simplices.len(), 1);
         assert_eq!(filtration.simplices[0].vertices, vec![0]);

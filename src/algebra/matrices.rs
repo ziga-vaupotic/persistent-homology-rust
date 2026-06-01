@@ -1,99 +1,146 @@
 
+use std::collections::HashMap;
+
 // The boundary matrix is an element of GF(2)
 // Currently the columns act as a a way to stor 1s
 // E.g. [1,2, 3] means that in column id. 1 there are
 // 1s at position 1 2 and 3.
 
 pub struct BoundaryMatrix {
-    columns: Vec<Vec<usize>>,
+    pub columns: Vec<Vec<usize>>,
+    pub column_indices: Vec<usize>, // global filtration indices
+}
+pub struct ReducedBoundaryMatrix {
+    pub matrix: BoundaryMatrix,
+    pub low: Vec<Option<usize>>,
 }
 
 impl BoundaryMatrix {
-    pub fn new(mut columns: Vec<Vec<usize>>) -> Self {
-        // enforce consistency i.e. row-ids are sorted
+    pub fn new(
+        mut columns: Vec<Vec<usize>>,
+        column_indices: Vec<usize>,
+    ) -> Self {
+        assert_eq!(columns.len(), column_indices.len());
 
         for col in &mut columns {
             col.sort_unstable();
             col.dedup();
         }
-        Self { columns }
+
+        Self {
+            columns,
+            column_indices,
+        }
     }
 
     pub fn columns(&self) -> &Vec<Vec<usize>> {
         &self.columns
     }
 
-    pub fn reduce(&self) -> (BoundaryMatrix, Vec<Option<usize>>) {
+    pub fn reduce(&self) -> ReducedBoundaryMatrix {
         let mut matrix = self.columns.clone();
 
-        let mut max_row = 0;
-        for col in &matrix {
-            for &r in col {
-                max_row = max_row.max(r);
-            }
-        }
+        // low[j] = largest row index in reduced column j
+        let mut low: Vec<Option<usize>> = vec![None; matrix.len()];
 
-        let num_rows = max_row + 1;
-        let mut low: Vec<Option<usize>> = vec![None; num_rows];
+        // pivot row -> column owning that pivot
+        let mut pivot_owner: HashMap<usize, usize> = HashMap::new();
 
         for j in 0..matrix.len() {
             let mut col = matrix[j].clone();
 
-            while !col.is_empty() {
-                let pivot_row = col[0];
+            loop {
+                if col.is_empty() {
+                    break;
+                }
 
-                if let Some(existing_j) = low[pivot_row] {
-                    let existing_col = matrix[existing_j].clone();
+                // Standard persistence convention:
+                // low(j) = largest row index
+                let pivot_row = *col.last().unwrap();
 
+                if let Some(&owner) = pivot_owner.get(&pivot_row) {
+                    let owner_col = &matrix[owner];
+
+                    // Z2 symmetric difference
                     let mut new_col = Vec::new();
-                    let (mut i, mut p) = (0, 0);
+                    let (mut a, mut b) = (0, 0);
 
-                    while i < col.len() && p < existing_col.len() {
-                        if col[i] < existing_col[p] {
-                            new_col.push(col[i]);
-                            i += 1;
-                        } else if col[i] > existing_col[p] {
-                            new_col.push(existing_col[p]);
-                            p += 1;
-                        } else {
-                            i += 1;
-                            p += 1;
+                    while a < col.len() && b < owner_col.len() {
+                        match col[a].cmp(&owner_col[b]) {
+                            std::cmp::Ordering::Less => {
+                                new_col.push(col[a]);
+                                a += 1;
+                            }
+                            std::cmp::Ordering::Greater => {
+                                new_col.push(owner_col[b]);
+                                b += 1;
+                            }
+                            std::cmp::Ordering::Equal => {
+                                a += 1;
+                                b += 1;
+                            }
                         }
                     }
 
-                    new_col.extend_from_slice(&col[i..]);
-                    new_col.extend_from_slice(&existing_col[p..]);
+                    new_col.extend_from_slice(&col[a..]);
+                    new_col.extend_from_slice(&owner_col[b..]);
 
                     col = new_col;
                 } else {
-                    low[pivot_row] = Some(j);
-                    matrix[j] = col;
+                    low[j] = Some(pivot_row);
+                    pivot_owner.insert(pivot_row, j);
                     break;
                 }
             }
+
+            matrix[j] = col;
         }
 
-        // return pivots aswell
-        (BoundaryMatrix { columns: matrix }, low)
-    }
 
+        let mut nonzero = 0;
+        let mut zero = 0;
+
+        for col in &matrix {
+            if col.is_empty() {
+                zero += 1;
+            } else {
+                nonzero += 1;
+            }
+        }
+
+        println!("zero={} nonzero={}", zero, nonzero);
+
+        ReducedBoundaryMatrix {
+            matrix: BoundaryMatrix {
+                columns: matrix,
+                column_indices: self.column_indices.clone(),
+            },
+            low,
+        }
+    }
 
     // Computes ranks of the largest chain complex
     pub fn rank(&self) -> usize {
-        let (_, low) = self.reduce();
-        low.into_iter().filter(|x| x.is_some()).count()
+        self.reduce().low.into_iter().filter(|x| x.is_some()).count()
     }
 
 }
 pub type BoundaryMatrices = Vec<BoundaryMatrix>;
+pub type ReducedBoundaryMatrices = Vec<ReducedBoundaryMatrix>;
+
 
 #[cfg(test)]
 mod tests {
     use super::*;
 
+    fn test_boundary_matrix(columns: Vec<Vec<usize>>) -> BoundaryMatrix {
+        let column_indices = (0..columns.len()).collect();
+        BoundaryMatrix::new(columns, column_indices)
+    }
+
     #[test]
     fn test_new_sorts_and_dedups() {
-        let bm = BoundaryMatrix::new(vec![
+        let bm = test_boundary_matrix(vec![
             vec![3, 1, 1, 2],
             vec![2, 2, 0],
         ]);
@@ -106,7 +153,7 @@ mod tests {
 
     #[test]
     fn test_rank_independent_columns() {
-        let bm = BoundaryMatrix::new(vec![
+        let bm = test_boundary_matrix(vec![
             vec![0],
             vec![1],
             vec![2],
@@ -118,7 +165,7 @@ mod tests {
     #[test]
     fn test_rank_single_dependency() {
         // c3 = c1 + c2 over GF(2)
-        let bm = BoundaryMatrix::new(vec![
+        let bm = test_boundary_matrix(vec![
             vec![0, 1],
             vec![1],
             vec![0],
@@ -129,7 +176,7 @@ mod tests {
 
     #[test]
     fn test_rank_full_dependency() {
-        let bm = BoundaryMatrix::new(vec![
+        let bm = test_boundary_matrix(vec![
             vec![0],
             vec![0],
             vec![0],
@@ -140,15 +187,13 @@ mod tests {
 
     #[test]
     fn test_reduce_pivots_consistent_with_rank() {
-        let bm = BoundaryMatrix::new(vec![
+        let bm = test_boundary_matrix(vec![
             vec![0],
             vec![1],
             vec![0, 1],
         ]);
 
-        let (_, low) = bm.reduce();
-
-        let rank_from_low = low.iter().filter(|x| x.is_some()).count();
+        let rank_from_low = bm.reduce().low.iter().filter(|x| x.is_some()).count();
         let rank_direct = bm.rank();
 
         assert_eq!(rank_from_low, rank_direct);
@@ -156,22 +201,22 @@ mod tests {
 
     #[test]
     fn test_pivots_are_valid_indices() {
-        let bm = BoundaryMatrix::new(vec![
+        let bm = test_boundary_matrix(vec![
             vec![0],
             vec![1],
             vec![2],
         ]);
 
-        let (_, low) = bm.reduce();
+        let reduce = bm.reduce();
 
-        for pivot in low.iter().flatten() {
+        for pivot in reduce.low.iter().flatten() {
             assert!(*pivot < bm.columns().len());
         }
     }
 
     #[test]
     fn test_rank_never_exceeds_columns() {
-        let bm = BoundaryMatrix::new(vec![
+        let bm = test_boundary_matrix(vec![
             vec![0, 1],
             vec![1],
         ]);
