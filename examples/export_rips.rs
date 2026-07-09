@@ -1,3 +1,6 @@
+
+
+
 use vietoris_rips_rust::algebra::discretisation::{build_boundary_matrices, reduce_boundary_matrices};
 use vietoris_rips_rust::algebra::persistence::{compute_persistence_diagram};
 use vietoris_rips_rust::geometry::point_set::PointSet;
@@ -15,7 +18,7 @@ fn main() {
     let pointset = import_point_set::<2>(path)
         .expect("Failed to read CSV");
 
-    let filtration = vietoris_rips(&pointset, 2, None);
+    let filtration = vietoris_rips(&pointset, None, Some(2));
 
 
 

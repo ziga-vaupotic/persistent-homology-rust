@@ -19,7 +19,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let path = Path::new("data.csv");
 
     let pointset = import_point_set::<2>(path)?;
-    let filtration = vietoris_rips(&pointset, 2, None);
+    let filtration = vietoris_rips(&pointset, None, Some(2));
 
     let matrices = build_boundary_matrices(&filtration);
     

@@ -2,6 +2,7 @@ use vietoris_rips_rust::geometry::point::Point;
 use vietoris_rips_rust::geometry::point_set::PointSet;
 use vietoris_rips_rust::construction::rips::vietoris_rips;
 
+
 #[test]
 fn test_filtration_is_sorted() {
     let points = vec![
@@ -12,12 +13,13 @@ fn test_filtration_is_sorted() {
 
     let pointset = PointSet::new(points).expect("Pointset couldn't be generated.");
 
-    let filtration = vietoris_rips(&pointset, 1, None);
+    let filtration = vietoris_rips(&pointset, None, Some(1));
 
     for i in 1..filtration.simplices.len() {
-        assert!(filtration.simplices[i-1].filtration_value <= filtration.simplices[i].filtration_value);
+        assert!(filtration.simplices[i - 1].filtration_value <= filtration.simplices[i].filtration_value);
     }
 }
+
 
 #[test]
 fn test_simple_persistence_example() {
@@ -30,7 +32,7 @@ fn test_simple_persistence_example() {
 
     let pointset = PointSet::new(points).expect("Pointset couldn't be generated.");
 
-    let filtration = vietoris_rips(&pointset, 1, None);
+    let filtration = vietoris_rips(&pointset, None, Some(1));
 
     // Should have 3 points, 3 edges (0-1 close, 0-2 and 1-2 far)
     assert_eq!(filtration.simplices.len(), 6); // 3 verts + 3 edges
