@@ -1,5 +1,5 @@
 
-use crate::algebra::persistence::PersistenceDiagram;
+use crate::algebra::PersistenceDiagram;
 
 pub fn betti_at(
     diagram: &PersistenceDiagram,

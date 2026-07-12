@@ -1,6 +1,6 @@
 use plotters::prelude::*;
 use vietoris_rips_rust::io::csv::import_point_set;
-use vietoris_rips_rust::construction::rips::vietoris_rips;
+use vietoris_rips_rust::construction::vietoris_rips;
 
 use std::path::Path;
 

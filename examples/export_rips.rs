@@ -1,11 +1,12 @@
 
 
 
-use vietoris_rips_rust::algebra::discretisation::{build_boundary_matrices, reduce_boundary_matrices};
-use vietoris_rips_rust::algebra::persistence::{compute_persistence_diagram};
-use vietoris_rips_rust::geometry::point_set::PointSet;
-use vietoris_rips_rust::io::csv::{export_filtration_csv, export_persistence_csv, import_point_set};
-use vietoris_rips_rust::construction::rips::vietoris_rips;
+use vietoris_rips_rust::algebra::{
+    build_boundary_matrices, reduce_boundary_matrices, compute_persistence_diagram
+};
+use vietoris_rips_rust::geometry::PointSet;
+use vietoris_rips_rust::io::csv::{ export_filtration_csv, export_persistence_csv, import_point_set };
+use vietoris_rips_rust::construction::vietoris_rips;
 
 use std::path::Path;
 

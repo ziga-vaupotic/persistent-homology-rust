@@ -1,11 +1,9 @@
 
 
 
-use crate::geometry::point::Point;
-use crate::geometry::point_set::PointSet;
+use crate::geometry::PointSet;
 
-use crate::topology::simplex::Simplex;
-use crate::topology::filtration::Filtration;
+use crate::topology::{ Simplex, Filtration };
 
 use std::collections::HashMap;
 use itertools::Itertools;
@@ -23,7 +21,7 @@ fn binom(a : usize, b : usize) -> usize {
 fn intersection_ordered(a : &Vec<usize>, b : &Vec<usize>) -> Vec<usize> {
     let (m, n) = (a.len(), b.len());
     let (mut i, mut j) = (0, 0);
-    let mut result = vec![];
+    let mut intersection = vec![];
     while i < m && j < n {
         if a[i] < b[j] {
             i += 1;
@@ -33,18 +31,15 @@ fn intersection_ordered(a : &Vec<usize>, b : &Vec<usize>) -> Vec<usize> {
             j += 1;
             continue
         }
-        result.push(a[i]);
+        intersection.push(a[i]);
         i += 1;
         j += 1;
     }
-    result
+    intersection
 }
 
 
-fn rips_simplex(
-    clique : Vec<usize>,
-    distance : &HashMap<(usize, usize), f64>
-) -> Simplex {
+fn rips_simplex( clique : Vec<usize>, distance : &HashMap<(usize, usize), f64>) -> Simplex {
     let mut max_d = 0.0;
     for mut v in (0..clique.len()).combinations(2) {
         v.sort();
@@ -66,7 +61,7 @@ fn cliques(
     distance : &HashMap<(usize, usize), f64>,
     result : &mut Vec<Simplex>
 ) {
-    if clique.len() > 2 { result.push(rips_simplex(clique.clone(), distance)); }
+    if clique.len() >= 3 { result.push(rips_simplex(clique.clone(), distance)); }
 
     if clique.len() == max_k || candidates.len() == 0 { return; }
     if clique.len() + candidates.len() < 3 { return; }
@@ -107,7 +102,7 @@ pub fn vietoris_rips(point_set : &PointSet, max_epsilon : Option<f64>, max_dim :
         adjacency.entry(x).and_modify(|u| u.push(y)).or_insert(vec![y]);
         adjacency.entry(y).and_modify(|u| u.push(x)).or_insert(vec![x]);
     }
-    //adjacency already ordered as per property of combinations
+    //adjacency[i] already ordered for all i as per property of combinations
 
     /*
     let len_choose_2 = binom(point_set.len(), 2);
@@ -150,11 +145,11 @@ mod tests {
 
     #[test]
     fn _test_vietoris_rips_three_points() {
-        let pi : f64 = 3.14159265358979323846264338327950288419716939937510;//...
+        use std::f64::consts::PI;
         let points = vec![
             Point::new(vec![f64::cos(0.0), f64::sin(0.0)]),
-            Point::new(vec![f64::cos(2.0 * pi / 3.0), f64::sin(2.0 * pi / 3.0)]),
-            Point::new(vec![f64::cos(4.0 * pi / 3.0), f64::sin(4.0 * pi / 3.0)])
+            Point::new(vec![f64::cos(2.0 * PI / 3.0), f64::sin(2.0 * PI / 3.0)]),
+            Point::new(vec![f64::cos(4.0 * PI / 3.0), f64::sin(4.0 * PI / 3.0)])
         ];
         let pointset = PointSet::new(points).expect("Pointset couldn't be generated.");
 

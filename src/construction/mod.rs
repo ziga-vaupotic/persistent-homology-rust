@@ -1,1 +1,7 @@
-pub mod rips;
+
+
+
+mod rips;
+
+
+pub use self::rips::*;
