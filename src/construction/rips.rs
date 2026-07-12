@@ -8,6 +8,8 @@ use crate::topology::{ Simplex, Filtration };
 use std::collections::HashMap;
 use itertools::Itertools;
 
+use crate::construction::common::*;
+
 
 /*
 // for graph density
@@ -16,28 +18,6 @@ fn binom(a : usize, b : usize) -> usize {
     (a * binom(a - 1, b - 1)) / b
 }
 */
-
-
-fn intersection_ordered(a : &Vec<usize>, b : &Vec<usize>) -> Vec<usize> {
-    let (m, n) = (a.len(), b.len());
-    let (mut i, mut j) = (0, 0);
-    let mut intersection = vec![];
-    while i < m && j < n {
-        if a[i] < b[j] {
-            i += 1;
-            continue
-        }
-        if b[j] < a[i] {
-            j += 1;
-            continue
-        }
-        intersection.push(a[i]);
-        i += 1;
-        j += 1;
-    }
-    intersection
-}
-
 
 fn rips_simplex( clique : Vec<usize>, distance : &HashMap<(usize, usize), f64>) -> Simplex {
     let mut max_d = 0.0;
@@ -110,11 +90,11 @@ pub fn vietoris_rips(point_set : &PointSet, max_epsilon : Option<f64>, max_dim :
     println!("graph density {} / {} = {:?}", num_edges, len_choose_2, f);
     */
 
-    //TODO add degeneracy ordering
-    //  order by degeneracy get some permutation of 0..n,
-    //  input candidates = 0..n with phi : 0..n -> 0..n bijection that maps i to element at index i
-    //  in degeneracy ordering
-    //  as described in : https://arxiv.org/abs/1006.5440
+    // TODO add degeneracy ordering
+    // order by degeneracy get some permutation of 0..n,
+    // input candidates = 0..n with phi : 0..n -> 0..n bijection that maps i to element at index i
+    // in degeneracy ordering
+    // as described in : https://arxiv.org/abs/1006.5440
     let candidates : Vec<usize> = (0..point_set.len()).collect(); // has to be ordered
     cliques(
         Vec::new(),
