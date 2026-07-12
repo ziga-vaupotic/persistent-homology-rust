@@ -66,27 +66,22 @@ fn from_boundary(boundary : &Vec<usize>, space : &PointSet) -> Ball {
 
 // procedure :
 // find affine subspace containing boundary find isometry to R^(n - 1), where n is size of boundary
-// calculate miniball there then move the cenetr back to original subspace
-// no need change radius as isometry
+// calculate miniball there then move the center back to original subspace
+// no need to change the radius as we have an isometry
 pub fn on_affine_subspace(boundary : &Vec<usize>, space : &PointSet) -> Ball {
     let dim = space.dim();
 
-    let affine_basis : Vec<Point> = (1..boundary.len())
+    let linear_parts : Vec<Point> = (1..boundary.len())
         .map(|x| Point::difference(space.get(boundary[x]), space.get(boundary[0]))).collect();
-    let n = affine_basis.len();
 
-    let mut span = affine_basis.clone();
-    for i in 0..dim {
-        span.push(Point::standard_unit(i, dim));
-    }
+    // find Q such that Q(q_i - q_0) = (a_1, ..., a_n, 0, ..., 0)
+    let (Q, LI) = extend_to_basis(&linear_parts); // orthonormal matrix => isometry
+    let n = LI.len();
 
-    let Q = gram_schmidt(&span); // orthonormal matrix => isometry
-
-    // transform subspace so q_i - q_0 = (a_1, ..., a_n, 0, ..., 0)
     let mut new_space_points : Vec<Point> = Vec::new();
-    for x in affine_basis {
-        let mut u = multiply(&Q, &x.coords);
-        u.truncate(n); // all after should be 0.0 as per Gram Schmidt
+    for i in LI {
+        let mut u = multiply(&Q, &linear_parts[i].coords);
+        u.truncate(n); // all components after are zero as per Gram Schmidt
         new_space_points.push(Point::new(u));
     }
     new_space_points.push(Point::new(vec![0.0; n])); // add the n + 1 th point
@@ -100,9 +95,8 @@ pub fn on_affine_subspace(boundary : &Vec<usize>, space : &PointSet) -> Ball {
     let mut center_new = miniball.o().coords.clone();
     let mut zeros = vec![0.0; dim - n];
     center_new.append(&mut zeros);
-    let center_linear = Point::new(multiply_transpose(&Q, &center_new));
-
-    let center = Point::sum_no_check(&vec![center_linear, space.get(boundary[0]).clone()]);
+    let mut center = Point::new(multiply_transpose(&Q, &center_new));
+    center.add(space.get(boundary[0]));
 
     Ball::new(center, miniball.radius)
 }
@@ -133,11 +127,14 @@ fn multiply_transpose(A : &Vec<Vec<f64>>, v : &Vec<f64>) -> Vec<f64> {
     result
 }
 
+
 // https://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process
 // NOTE using modified Gram Schmidt process --- might still be nummerically unstable
-pub fn gram_schmidt(points : &Vec<Point>) -> Vec<Vec<f64>> {
-    let mut base : Vec<Point> = Vec::new();
+pub fn extend_to_basis(points : &Vec<Point>) -> (Vec<Vec<f64>>, Vec<usize>) {
+    let dim = points[0].dim();
     let n = points.len();
+
+    let mut base : Vec<Point> = Vec::new();
 
     let mut u_0 = points[0].clone();
     u_0.normalize();
@@ -146,27 +143,32 @@ pub fn gram_schmidt(points : &Vec<Point>) -> Vec<Vec<f64>> {
     for i in 1..n {
         base.push(points[i].clone());
     }
+    for i in 0..dim { // extend to span of R^dim
+        base.push(Point::standard_unit(i, dim));
+    }
 
-    for i in 1..n {
-        for j in i..n {
+    // Gram Schmidt
+    for i in 1..base.len() {
+        for j in i..base.len() {
             let projection = Point::projection_normal(&base[j], &base[i - 1]);
             base[j].subtract(&projection);
         }
         base[i].normalize();
     }
 
-    base.into_iter().filter(|x| !x.is_zero()).map(|x| x.coords.clone()).collect()
+    let linearly_independent : Vec<usize> = (0..n).filter(|&x| !base[x].is_zero()).collect();
+    (base.into_iter().filter(|x| !x.is_zero()).map(|x| x.coords.clone()).collect(), linearly_independent)
 }
 
 
 // generalised formula from https://mathworld.wolfram.com/Circumsphere.html
 // as well as https://en.wikipedia.org/wiki/Circumcircle both taken on the 11th of July 2026
 fn circumsphere(boundary : &Vec<usize>, space : &PointSet) -> Ball {
-    let n = boundary.len(); // = dim + 1
     let dim = space.dim();
+    let n = dim + 1; // length of boundary, if longer just take the first n
 
     fn det(A : &mut Vec<Vec<f64>>) -> f64 {
-        if A.len() < 5 { return det_naive(A); }
+        if A.len() < 6 { return det_naive(A); }
         det_LU(A)
     }
 
@@ -216,11 +218,11 @@ fn det_naive(A : &mut Vec<Vec<f64>>) -> f64 { // mut just to match with det_LU
     let mut result = 0.0;
     for i in 0..A.len() {
         let mut A_i = A.clone();
-        A_i.remove(i);
+        A_i.remove(0);
         for j in 0..A_i.len() {
             A_i[j].remove(i);
         }
-        result += (-1.0_f64).powf(i as f64) * det_naive(&mut A_i);
+        result += (-1.0_f64).powf(i as f64) * A[0][i] * det_naive(&mut A_i);
     }
     result
 }
@@ -241,7 +243,6 @@ fn det_LU(mut A : &mut Vec<Vec<f64>>) -> f64 {
 }
 
 
-// TODO add partial pivoting to improve stability
 // assumes that the appropriate values of U and L ie. upper and lower triangles
 // respectively are already zero before input (not a problem if not)
 fn LU_decomposition(L : &mut Vec<Vec<f64>>, U : &mut Vec<Vec<f64>>, A : &mut Vec<Vec<f64>>) {

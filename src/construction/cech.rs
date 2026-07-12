@@ -89,7 +89,7 @@ fn cliques(
 }
 
 
-//TODO change algorithm used based on dimesion and size of clique
+// TODO change algorithm used based on dimesion and size of clique
 fn in_ball(clique : &Vec<usize>, max_epsilon : f64, space : &PointSet) -> Option<f64> {
     let miniball = miniball::welzl(clique, space);
     if miniball.r() > max_epsilon { return None; }

@@ -1,8 +1,7 @@
 
 
 
-use crate::topology::simplex::Simplex;
-use crate::topology::simplical_complex::SimplicialComplex;
+use crate::topology::{ Simplex, SimplicialComplex };
 
 
 pub struct Filtration {
