@@ -47,7 +47,7 @@ pub fn cech(point_set : &PointSet, max_epsilon : Option<f64>, max_dim : Option<u
         a.filtration_value
             .partial_cmp(&b.filtration_value)
             .unwrap()
-            .then(a.dimension().cmp(&b.dimension()))
+            .then(a.dim().cmp(&b.dim()))
             .then(a.vertices.cmp(&b.vertices))
     });
 

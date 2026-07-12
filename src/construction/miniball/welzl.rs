@@ -75,11 +75,10 @@ pub fn on_affine_subspace(boundary : &Vec<usize>, space : &PointSet) -> Ball {
         .map(|x| Point::difference(space.get(boundary[x]), space.get(boundary[0]))).collect();
 
     // find Q such that Q(q_i - q_0) = (a_1, ..., a_n, 0, ..., 0)
-    let (Q, LI) = extend_to_basis(&linear_parts); // orthonormal matrix => isometry
-    let n = LI.len();
-
+    let (Q, n) = extend_to_basis(&linear_parts); // orthonormal matrix => isometry
+ 
     let mut new_space_points : Vec<Point> = Vec::new();
-    for i in LI {
+    for i in 0..n { // can just take the first n as they lie on a sphere going through the origin => LI
         let mut u = multiply(&Q, &linear_parts[i].coords);
         u.truncate(n); // all components after are zero as per Gram Schmidt
         new_space_points.push(Point::new(u));
@@ -91,7 +90,7 @@ pub fn on_affine_subspace(boundary : &Vec<usize>, space : &PointSet) -> Ball {
     // find center in subpace spanned by {Q(q_i - q_0)}_i
     let miniball = circumsphere(&new_boundary, &new_space);
 
-    // get back the original center with Q^T center_new + q_0 = center
+    // center = Q^T center_new + q_0
     let mut center_new = miniball.o().coords.clone();
     let mut zeros = vec![0.0; dim - n];
     center_new.append(&mut zeros);
@@ -130,7 +129,7 @@ fn multiply_transpose(A : &Vec<Vec<f64>>, v : &Vec<f64>) -> Vec<f64> {
 
 // https://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process
 // NOTE using modified Gram Schmidt process --- might still be nummerically unstable
-pub fn extend_to_basis(points : &Vec<Point>) -> (Vec<Vec<f64>>, Vec<usize>) {
+pub fn extend_to_basis(points : &Vec<Point>) -> (Vec<Vec<f64>>, usize) {
     let dim = points[0].dim();
     let n = points.len();
 
@@ -156,8 +155,8 @@ pub fn extend_to_basis(points : &Vec<Point>) -> (Vec<Vec<f64>>, Vec<usize>) {
         base[i].normalize();
     }
 
-    let linearly_independent : Vec<usize> = (0..n).filter(|&x| !base[x].is_zero()).collect();
-    (base.into_iter().filter(|x| !x.is_zero()).map(|x| x.coords.clone()).collect(), linearly_independent)
+    let dim_subspace = (0..n).map(|x| !base[x].is_zero() as usize).sum();
+    (base.into_iter().filter(|x| !x.is_zero()).map(|x| x.coords.clone()).collect(), dim_subspace)
 }
 
 

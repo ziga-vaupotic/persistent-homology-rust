@@ -39,7 +39,7 @@ impl Simplex {
         }
     }
 
-    pub fn dimension(&self) -> usize {
+    pub fn dim(&self) -> usize {
         self.vertices.len() - 1
     }
 

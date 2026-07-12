@@ -109,7 +109,7 @@ pub fn vietoris_rips(point_set : &PointSet, max_epsilon : Option<f64>, max_dim :
         a.filtration_value
             .partial_cmp(&b.filtration_value)
             .unwrap()
-            .then(a.dimension().cmp(&b.dimension()))
+            .then(a.dim().cmp(&b.dim()))
             .then(a.vertices.cmp(&b.vertices))
     });
 
@@ -146,7 +146,7 @@ mod tests {
             assert!((filtration.simplices[i].filtration_value - 2.0 * f64::cos(pi / 6.0)).abs() < 1e-10);
         }
 
-        let dims: Vec<usize> = filtration.simplices.iter().map(|s| s.dimension()).collect();
+        let dims: Vec<usize> = filtration.simplices.iter().map(|s| s.dim()).collect();
         assert_eq!(dims, vec![0, 0, 0, 1, 1, 1, 2]);
 
         assert_eq!(filtration.simplices[6].vertices, vec![0, 1, 2]);
