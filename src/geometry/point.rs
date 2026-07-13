@@ -6,6 +6,7 @@ pub struct Point {
     pub coords: Vec<f64>,
 }
 
+
 impl Point {
 
     pub fn new(coords : Vec<f64>) -> Self {

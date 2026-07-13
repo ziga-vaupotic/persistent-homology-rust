@@ -83,28 +83,17 @@ fn from_boundary(boundary : &Vec<usize>, space : &PointSet) -> Ball { // |bounda
 }
 
 
-fn print_matrix(A : &Vec<Vec<f64>>) {
-    println!("[");
-    for x in A.iter() {
-        println!("    {:?}", x);
-    }
-    println!("]");
-}
-
-
 // procedure :
 // find affine subspace containing boundary find isometry to R^(n - 1), where n is size of boundary
 // calculate miniball there then move the center back to original subspace
 // no need to change the radius as we have an isometry
 fn on_affine_subspace(boundary : &Vec<usize>, space : &PointSet) -> Ball {
-    let dim = space.dim();
-
     let linear_parts : Vec<Point> = (1..boundary.len())
         .map(|x| Point::difference(space.get(boundary[x]), space.get(boundary[0]))).collect();
 
     // find Q such that Q(q_i - q_0) = (a_1, ..., a_n, 0, ..., 0)
-    let (Q, n) = extend_to_basis(&linear_parts); // orthonormal matrix => isometry
- 
+    let (mut Q, n) = extend_to_basis(&linear_parts); // orthonormal matrix => isometry
+
     let mut new_space_points : Vec<Point> = Vec::new();
     for i in 0..n { // can just take the first n as they lie on a sphere going through the origin => LI
         let mut u = multiply(&Q, &linear_parts[i].coords);
@@ -119,10 +108,8 @@ fn on_affine_subspace(boundary : &Vec<usize>, space : &PointSet) -> Ball {
     let miniball = circumsphere(&new_boundary, &new_space);
 
     // center = Q^T center_new + q_0
-    let mut center_new = miniball.o().coords.clone();
-    // TODO no need to append zeros and multiply with the whole matrix
-    let mut zeros = vec![0.0; dim - n];
-    center_new.append(&mut zeros);
+    let center_new = miniball.o().coords.clone();
+    Q.truncate(n); // to match dim of center_new
     let mut center = Point::new(multiply_transpose(&Q, &center_new));
     center.add(space.get(boundary[0]));
 
@@ -133,8 +120,6 @@ fn on_affine_subspace(boundary : &Vec<usize>, space : &PointSet) -> Ball {
 fn multiply(A : &Vec<Vec<f64>>, v : &Vec<f64>) -> Vec<f64> {
     let m = A.len();
     let n = A[0].len();
-    assert_eq!(n, m);
-    assert_eq!(m, v.len());
 
     let mut result : Vec<f64> = Vec::new();
     for i in 0..m {
@@ -148,8 +133,6 @@ fn multiply(A : &Vec<Vec<f64>>, v : &Vec<f64>) -> Vec<f64> {
 fn multiply_transpose(A : &Vec<Vec<f64>>, v : &Vec<f64>) -> Vec<f64> {
     let m = A.len();
     let n = A[0].len();
-    assert_eq!(n, m);
-    assert_eq!(m, v.len());
 
     let mut result : Vec<f64> = Vec::new();
     for i in 0..n {
@@ -207,7 +190,7 @@ fn gram_schmidt(points : &Vec<Point>) -> Vec<Point> {
 // https://en.wikipedia.org/wiki/Circumcircle
 fn circumsphere(boundary : &Vec<usize>, space : &PointSet) -> Ball {
     let dim = space.dim();
-    let n = dim + 1; // length of boundary, if longer just take the first n
+    let n = dim + 1; // length of boundary
 
     fn det(A : &mut Vec<Vec<f64>>) -> f64 {
         if A.len() < 6 { return det_naive(A); }

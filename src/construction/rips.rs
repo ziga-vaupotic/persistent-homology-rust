@@ -1,14 +1,11 @@
 
 
 
+use crate::construction::{ cliques, common::*, Distance };
 use crate::geometry::PointSet;
+use crate::topology::Filtration;
 
-use crate::topology::{ Simplex, Filtration };
-
-use std::collections::HashMap;
 use itertools::Itertools;
-
-use crate::construction::common::*;
 
 
 /*
@@ -19,75 +16,16 @@ fn binom(a : usize, b : usize) -> usize {
 }
 */
 
-fn rips_simplex( clique : Vec<usize>, distance : &HashMap<(usize, usize), f64>) -> Simplex {
-    let mut max_d = 0.0;
-    for mut v in (0..clique.len()).combinations(2) {
-        v.sort();
-        let &d = distance.get(&(clique[v[0]], clique[v[1]])).unwrap();
-        max_d = if d >= max_d { d } else { max_d };
-    }
-    Simplex::new(clique, max_d)
-}
 
-
-// using modified Bron-Kerbosch (1973)
-// similar to as described in : https://ieeexplore.ieee.org/document/1559964
-// TODO try : https://arxiv.org/abs/2311.13798v2
-fn cliques(
-    clique : Vec<usize>,
-    candidates : Vec<usize>,
-    max_k : usize,
-    adjacency : &HashMap<usize, Vec<usize>>,
-    distance : &HashMap<(usize, usize), f64>,
-    result : &mut Vec<Simplex>
-) {
-    if clique.len() >= 3 { result.push(rips_simplex(clique.clone(), distance)); }
-
-    if clique.len() == max_k || candidates.len() == 0 { return; }
-    if clique.len() + candidates.len() < 3 { return; }
-
-    for (i, &x) in candidates.iter().enumerate() {
-        cliques(
-            [&clique, vec![x].as_slice()].concat(),
-            intersection_ordered(&candidates[i..].to_vec(), &adjacency[&x]),
-            max_k,
-            adjacency,
-            distance,
-            result
-        )
-    }
-}
-
-
-pub fn vietoris_rips(point_set : &PointSet, max_epsilon : Option<f64>, max_dim : Option<usize>) -> Filtration {
+pub fn vietoris_rips(space : &PointSet, max_epsilon : Option<f64>, max_dim : Option<usize>) -> Filtration {
     let max_epsilon = max_epsilon.unwrap_or(f64::MAX);
     let max_dim = max_dim.unwrap_or(usize::MAX - 1);
 
-    let mut simplices : Vec<Simplex> = Vec::new();
-    (0..point_set.len()).for_each(|x| simplices.push(Simplex::new(vec![x], 0.0))); // dim = 0
-
-    //let mut num_edges = 0;
-    let mut adjacency : HashMap<usize, Vec<usize>> = HashMap::new();
-    let mut distance : HashMap<(usize, usize), f64> = HashMap::new();
-
-    for v in (0..point_set.len()).combinations(2) {
-        let (x, y) = (v[0], v[1]); // x < y
-        let d = point_set.get(x).distance(point_set.get(y));
-
-        if d > max_epsilon { continue }
-        simplices.push(Simplex::new(v, d)); // dim = 1
-        //num_edges += 1;
-
-        distance.insert((x, y), d);
-        adjacency.entry(x).and_modify(|u| u.push(y)).or_insert(vec![y]);
-        adjacency.entry(y).and_modify(|u| u.push(x)).or_insert(vec![x]);
-    }
-    //adjacency[i] already ordered for all i as per property of combinations
-
+    let (mut simplices, adjacency, distance) = initialize_simplices(space, max_epsilon, true);
     if adjacency.is_empty() { return Filtration::new(simplices) }
 
     /*
-    let len_choose_2 = binom(point_set.len(), 2);
+    let len_choose_2 = binom(space.len(), 2);
     let f : f64 = num_edges as f64 / len_choose_2 as f64;
     println!("graph density {} / {} = {:?}", num_edges, len_choose_2, f);
     */
@@ -97,25 +35,41 @@ pub fn vietoris_rips(point_set : &PointSet, max_epsilon : Option<f64>, max_dim :
     // input candidates = 0..n with phi : 0..n -> 0..n bijection that maps i to element at index i
     // in degeneracy ordering
     // as described in : https://arxiv.org/abs/1006.5440
-    let candidates : Vec<usize> = (0..point_set.len()).collect(); // has to be ordered
-    cliques(
+    // https://en.wikipedia.org/wiki/Degeneracy_(graph_theory)#Algorithms
+    let candidates : Vec<usize> = (0..space.len()).collect(); // has to be ordered
+    cliques::bron_kerbosch(
         Vec::new(),
         candidates,
         max_dim + 1,
+        max_epsilon,
+        0.0,
+        &space,
         &adjacency,
         &distance,
+        rips_radius,
         &mut simplices
     );
 
-    simplices.sort_by(|a, b| {
-        a.filtration_value
-            .partial_cmp(&b.filtration_value)
-            .unwrap()
-            .then(a.dim().cmp(&b.dim()))
-            .then(a.vertices.cmp(&b.vertices))
-    });
+    sort_simplices(&mut simplices);
 
     Filtration::new(simplices)
+}
+
+
+fn rips_radius(
+    clique : &Vec<usize>,
+    _epsilon : f64,
+    _tolerance : f64,
+    distance : &Distance,
+    _space : &PointSet
+) -> Option<f64> {
+    let mut max_d = 0.0;
+    for mut v in (0..clique.len()).combinations(2) {
+        v.sort();
+        let &d = distance.get(&(clique[v[0]], clique[v[1]])).unwrap();
+        max_d = if d >= max_d { d } else { max_d };
+    }
+    Some(max_d)
 }
 
 

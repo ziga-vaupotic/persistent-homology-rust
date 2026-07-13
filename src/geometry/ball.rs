@@ -4,6 +4,7 @@ use crate::geometry::Point;
 
 
 
+#[derive(Clone)]
 pub struct Ball { // closed ie. with boundary
     pub center : Point,
     pub radius : f64
