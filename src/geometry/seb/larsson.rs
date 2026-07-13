@@ -8,6 +8,7 @@ use crate::geometry::{ Ball, Point, PointSet };
 // in Arbitrary Dimensions, 2013
 // https://doi.org/10.1111/cgf.12176
 // NOTE O(dim n / epsilon + dim / epsilon^3) => good in higher dimensional spaces
+// NOTE r_optimal <= r_larsson <= r_optimal (1 + epsilon)
 pub fn larsson(points : &Vec<usize>, epsilon : f64, space : &PointSet) -> Ball {
     let delta = epsilon / 2.0;
     let mut C : Vec<Point> = Vec::new();

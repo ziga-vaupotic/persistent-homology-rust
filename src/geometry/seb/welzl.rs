@@ -42,19 +42,19 @@ fn welzl_rec(P : &mut Vec<usize>, B : Vec<usize>, space : &PointSet) -> Ball {
 }
 
 
-pub fn join_back(v : &Vec<usize>, x : usize) -> Vec<usize> {
+fn join_back(v : &Vec<usize>, x : usize) -> Vec<usize> {
     [v, vec![x].as_slice()].concat()
 }
 
 
-pub fn move_front(v : &mut Vec<usize>, x : usize) {
+fn move_front(v : &mut Vec<usize>, x : usize) {
     let u = v[x];
     v.remove(x);
     v.splice(..0, [u]);
 }
 
 
-pub fn cut_at(P : &Vec<usize>, x : usize) -> Vec<usize> {
+fn cut_at(P : &Vec<usize>, x : usize) -> Vec<usize> {
     let mut P_new = P.clone();
     P_new.truncate(x);
     P_new
@@ -163,14 +163,14 @@ fn extend_to_basis(points : &Vec<Point>) -> (Vec<Vec<f64>>, usize) {
     candidates.retain(|x| !x.is_zero());
     let base : Vec<Vec<f64>> = candidates.clone().iter().map(|x| x.coords.clone()).collect();
 
-    //print_matrix(&base);
-
     (base, dim_subspace)
 }
 
 
 // https://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process
 // NOTE using modified Gram Schmidt process to improve stability --- not perfect though
+// could implement a reortogonalization algorithm directly
+// https://doi.org/10.1016/j.camwa.2005.08.009
 fn gram_schmidt(points : &Vec<Point>) -> Vec<Point> {
     let mut ortonormal = points.clone();
 

@@ -1,7 +1,7 @@
 
 
 
-use crate::construction::{ cliques, common::*, Distance };
+use crate::construction::{ cliques, Construction }; 
 use crate::geometry::PointSet;
 use crate::topology::Filtration;
 
@@ -21,8 +21,9 @@ pub fn vietoris_rips(space : &PointSet, max_epsilon : Option<f64>, max_dim : Opt
     let max_epsilon = max_epsilon.unwrap_or(f64::MAX);
     let max_dim = max_dim.unwrap_or(usize::MAX - 1);
 
-    let (mut simplices, adjacency, distance) = initialize_simplices(space, max_epsilon, true);
-    if adjacency.is_empty() { return Filtration::new(simplices) }
+    let mut cons = Construction::new(max_dim, max_epsilon, 0.0);
+    cons.traverse_edges(space, max_epsilon, true);
+    if cons.no_adjacency() { return Filtration::new(cons.simplices); }
 
     /*
     let len_choose_2 = binom(space.len(), 2);
@@ -30,43 +31,18 @@ pub fn vietoris_rips(space : &PointSet, max_epsilon : Option<f64>, max_dim : Opt
     println!("graph density {} / {} = {:?}", num_edges, len_choose_2, f);
     */
 
-    // TODO add degeneracy ordering
-    // order by degeneracy get some permutation of 0..n,
-    // input candidates = 0..n with phi : 0..n -> 0..n bijection that maps i to element at index i
-    // in degeneracy ordering
-    // as described in : https://arxiv.org/abs/1006.5440
-    // https://en.wikipedia.org/wiki/Degeneracy_(graph_theory)#Algorithms
-    let candidates : Vec<usize> = (0..space.len()).collect(); // has to be ordered
-    cliques::bron_kerbosch(
-        Vec::new(),
-        candidates,
-        max_dim + 1,
-        max_epsilon,
-        0.0,
-        &space,
-        &adjacency,
-        &distance,
-        rips_radius,
-        &mut simplices
-    );
+    let candidates : Vec<usize> = (0..space.len()).collect();
+    cliques::bron_kerbosch(candidates, space, rips_radius, &mut cons);
 
-    sort_simplices(&mut simplices);
-
-    Filtration::new(simplices)
+    cons.sort_simplices();
+    Filtration::new(cons.simplices)
 }
 
 
-fn rips_radius(
-    clique : &Vec<usize>,
-    _epsilon : f64,
-    _tolerance : f64,
-    distance : &Distance,
-    _space : &PointSet
-) -> Option<f64> {
+fn rips_radius(clique : &Vec<usize>, _space : &PointSet, cons : &Construction) -> Option<f64> {
     let mut max_d = 0.0;
-    for mut v in (0..clique.len()).combinations(2) {
-        v.sort();
-        let &d = distance.get(&(clique[v[0]], clique[v[1]])).unwrap();
+    for v in (0..clique.len()).combinations(2) {
+        let d = cons.distance[&(clique[v[0]], clique[v[1]])];
         max_d = if d >= max_d { d } else { max_d };
     }
     Some(max_d)
