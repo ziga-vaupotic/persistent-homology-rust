@@ -26,6 +26,13 @@ impl Filtration {
     }
 
 
+    pub fn max_filtration_value(&self) -> f64 {
+        self.simplices.iter()
+            .max_by(|x, y| x.filtration_value.partial_cmp(&y.filtration_value).unwrap()).unwrap()
+            .filtration_value
+    }
+
+
     // Instead of copying elements we could also get only a vector of references to simplices!
     pub fn get_simplicial_complex(&self, epsilon: f64) -> SimplicialComplex {
         SimplicialComplex {

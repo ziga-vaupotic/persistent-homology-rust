@@ -84,6 +84,8 @@ pub fn vietoris_rips(point_set : &PointSet, max_epsilon : Option<f64>, max_dim :
     }
     //adjacency[i] already ordered for all i as per property of combinations
 
+    if adjacency.is_empty() { return Filtration::new(simplices) }
+
     /*
     let len_choose_2 = binom(point_set.len(), 2);
     let f : f64 = num_edges as f64 / len_choose_2 as f64;
@@ -138,12 +140,12 @@ mod tests {
         // should have [0], [1], [2], [0, 1], [0, 2], [1, 2], [0, 1, 2]
         assert_eq!(filtration.simplices.len(), 7);
 
-        // 0-simplices have filtration 0.0, 1 and 2-simplices 2 cos(pi / 6)
+        // 0-simplices have filtration 0.0, 1 and 2-simplices 2 cos(PI / 6)
         for i in 0..3 {
             assert_eq!(filtration.simplices[i].filtration_value, 0.0);
         }
         for i in 3..7 {
-            assert!((filtration.simplices[i].filtration_value - 2.0 * f64::cos(pi / 6.0)).abs() < 1e-10);
+            assert!((filtration.simplices[i].filtration_value - 2.0 * f64::cos(PI / 6.0)).abs() < 1e-12);
         }
 
         let dims: Vec<usize> = filtration.simplices.iter().map(|s| s.dim()).collect();

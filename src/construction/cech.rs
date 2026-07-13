@@ -1,16 +1,20 @@
 
 
 
-use crate::geometry::PointSet;
+use crate::geometry::{ PointSet, seb };
 use crate::topology::{ Simplex, Filtration };
 
-use crate::construction::miniball;
 use crate::construction::common::*;
 
 use std::collections::HashMap;
 use itertools::Itertools;
 
 
+// NOTE should only be used on very sparse graphs as it gets extremely computationally expensive for
+// larger cliques
+// TODO add an approximation algorith --- an idea is
+// T. Larsson, L. Källberg, Fast and Robust Approximation of Smallest Enclosing Balls
+// in Arbitrary Dimensions, 2013
 pub fn cech(point_set : &PointSet, max_epsilon : Option<f64>, max_dim : Option<usize>) -> Filtration {
     let max_epsilon = max_epsilon.unwrap_or(f64::MAX / 2.0);
     let max_dim = max_dim.unwrap_or(usize::MAX - 1);
@@ -30,6 +34,8 @@ pub fn cech(point_set : &PointSet, max_epsilon : Option<f64>, max_dim : Option<u
         adjacency.entry(x).and_modify(|u| u.push(y)).or_insert(vec![y]);
         adjacency.entry(y).and_modify(|u| u.push(x)).or_insert(vec![x]);
     }
+
+    if adjacency.is_empty() { return Filtration::new(simplices) }
 
     // TODO degeneracy ordering
     let candidates : Vec<usize> = (0..point_set.len()).collect(); // has to be ordered
@@ -91,7 +97,7 @@ fn cliques(
 
 // TODO change algorithm used based on dimesion and size of clique
 fn in_ball(clique : &Vec<usize>, max_epsilon : f64, space : &PointSet) -> Option<f64> {
-    let miniball = miniball::welzl(clique, space);
+    let miniball = seb::welzl(clique, space);
     if miniball.r() > max_epsilon { return None; }
     Some(miniball.r())
 }

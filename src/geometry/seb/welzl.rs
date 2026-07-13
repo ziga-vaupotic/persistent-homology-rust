@@ -4,16 +4,17 @@
 use rand::seq::SliceRandom;
 
 use crate::geometry::{ Point, PointSet, Ball };
-use crate::construction::common::*;
 
 
-// NOTE in current state can be nummerically unstable for dimensions > 2
-// TODO nummerical stability improvements
 // E. Welzl, Smallest enclosing disks (balls and ellipsoids), 1991
 // https://doi.org/10.1007/BFb0038202
-// NOTE should be only used for low dimensions (maybe up to 10?)
-// calculates ball from boundary from scratch every time so Gärtner 1999 should be prefered in most
-// cases (once its implemented)
+// NOTE in current state can be numerically unstable for dimensions > 2 because of matrix operations
+// NOTE should be only used for low dimensions ie. < 5 (maybe up to 10? with a very small space)
+// the basic algorith listed in the article is O((dim + 1)(dim + 1)!n) without accounting for the ball
+// from boundary step, while time complexity for this specific version of the algorithm is not
+// provided, it cannot be much better
+// this specific implementation also calculates the ball from a given boundary from scratch every
+// time so Gärtner 1999 should be prefered in most cases (once its implemented)
 pub fn welzl(points : &Vec<usize>, space : &PointSet) -> Ball {
     let mut P = points.clone();
     P.shuffle(&mut rand::rng());
@@ -25,7 +26,6 @@ pub fn welzl(points : &Vec<usize>, space : &PointSet) -> Ball {
 // using Gärtner 1999 move-to-front implementation
 // NOTE should probably be using LinkedList instead of Vec
 // unfortunatelly rust LinkedLists do not support remove/insert operations (nightly versions only)
-// should be OK as long as |P| does not exceed 10
 fn welzl_rec(P : &mut Vec<usize>, B : Vec<usize>, space : &PointSet) -> Ball {
     let mut miniball = from_boundary(&B, space);
     if P.is_empty() || B.len() == space.dim() + 1 {
@@ -42,7 +42,26 @@ fn welzl_rec(P : &mut Vec<usize>, B : Vec<usize>, space : &PointSet) -> Ball {
 }
 
 
-fn from_boundary(boundary : &Vec<usize>, space : &PointSet) -> Ball {
+pub fn join_back(v : &Vec<usize>, x : usize) -> Vec<usize> {
+    [v, vec![x].as_slice()].concat()
+}
+
+
+pub fn move_front(v : &mut Vec<usize>, x : usize) {
+    let u = v[x];
+    v.remove(x);
+    v.splice(..0, [u]);
+}
+
+
+pub fn cut_at(P : &Vec<usize>, x : usize) -> Vec<usize> {
+    let mut P_new = P.clone();
+    P_new.truncate(x);
+    P_new
+}
+
+
+fn from_boundary(boundary : &Vec<usize>, space : &PointSet) -> Ball { // |boundary| <= dim + 1
     match boundary.len() {
         0 => return Ball::new(Point::new(Vec::new()), 0.0),
         1 => return Ball::new(space.get(boundary[0]).clone(), 0.0),
@@ -64,11 +83,20 @@ fn from_boundary(boundary : &Vec<usize>, space : &PointSet) -> Ball {
 }
 
 
+fn print_matrix(A : &Vec<Vec<f64>>) {
+    println!("[");
+    for x in A.iter() {
+        println!("    {:?}", x);
+    }
+    println!("]");
+}
+
+
 // procedure :
 // find affine subspace containing boundary find isometry to R^(n - 1), where n is size of boundary
 // calculate miniball there then move the center back to original subspace
 // no need to change the radius as we have an isometry
-pub fn on_affine_subspace(boundary : &Vec<usize>, space : &PointSet) -> Ball {
+fn on_affine_subspace(boundary : &Vec<usize>, space : &PointSet) -> Ball {
     let dim = space.dim();
 
     let linear_parts : Vec<Point> = (1..boundary.len())
@@ -92,6 +120,7 @@ pub fn on_affine_subspace(boundary : &Vec<usize>, space : &PointSet) -> Ball {
 
     // center = Q^T center_new + q_0
     let mut center_new = miniball.o().coords.clone();
+    // TODO no need to append zeros and multiply with the whole matrix
     let mut zeros = vec![0.0; dim - n];
     center_new.append(&mut zeros);
     let mut center = Point::new(multiply_transpose(&Q, &center_new));
@@ -104,6 +133,8 @@ pub fn on_affine_subspace(boundary : &Vec<usize>, space : &PointSet) -> Ball {
 fn multiply(A : &Vec<Vec<f64>>, v : &Vec<f64>) -> Vec<f64> {
     let m = A.len();
     let n = A[0].len();
+    assert_eq!(n, m);
+    assert_eq!(m, v.len());
 
     let mut result : Vec<f64> = Vec::new();
     for i in 0..m {
@@ -117,6 +148,8 @@ fn multiply(A : &Vec<Vec<f64>>, v : &Vec<f64>) -> Vec<f64> {
 fn multiply_transpose(A : &Vec<Vec<f64>>, v : &Vec<f64>) -> Vec<f64> {
     let m = A.len();
     let n = A[0].len();
+    assert_eq!(n, m);
+    assert_eq!(m, v.len());
 
     let mut result : Vec<f64> = Vec::new();
     for i in 0..n {
@@ -127,41 +160,51 @@ fn multiply_transpose(A : &Vec<Vec<f64>>, v : &Vec<f64>) -> Vec<f64> {
 }
 
 
-// https://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process
-// NOTE using modified Gram Schmidt process --- might still be nummerically unstable
-pub fn extend_to_basis(points : &Vec<Point>) -> (Vec<Vec<f64>>, usize) {
+fn extend_to_basis(points : &Vec<Point>) -> (Vec<Vec<f64>>, usize) {
     let dim = points[0].dim();
     let n = points.len();
 
-    let mut base : Vec<Point> = Vec::new();
+    let mut span : Vec<Point> = Vec::new();
 
-    let mut u_0 = points[0].clone();
-    u_0.normalize();
-    base.push(u_0);
-
-    for i in 1..n {
-        base.push(points[i].clone());
+    for i in 0..n {
+        span.push(points[i].clone());
     }
     for i in 0..dim { // extend to span of R^dim
-        base.push(Point::standard_unit(i, dim));
+        span.push(Point::standard_unit(i, dim));
     }
 
-    // Gram Schmidt
-    for i in 1..base.len() {
-        for j in i..base.len() {
-            let projection = Point::projection_normal(&base[j], &base[i - 1]);
-            base[j].subtract(&projection);
+    let mut candidates = gram_schmidt(&span);
+    candidates = gram_schmidt(&candidates); // reortogonalisation
+
+    let dim_subspace = (0..n).map(|x| !candidates[x].is_zero() as usize).sum();
+    candidates.retain(|x| !x.is_zero());
+    let base : Vec<Vec<f64>> = candidates.clone().iter().map(|x| x.coords.clone()).collect();
+
+    //print_matrix(&base);
+
+    (base, dim_subspace)
+}
+
+
+// https://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process
+// NOTE using modified Gram Schmidt process to improve stability --- not perfect though
+fn gram_schmidt(points : &Vec<Point>) -> Vec<Point> {
+    let mut ortonormal = points.clone();
+
+    ortonormal[0].normalize();
+    for i in 1..ortonormal.len() {
+        for j in i..points.len() {
+            let projection = Point::projection_normal(&points[j], &ortonormal[i - 1]);
+            ortonormal[j].subtract(&projection);
         }
-        base[i].normalize();
+        ortonormal[i].normalize();
     }
-
-    let dim_subspace = (0..n).map(|x| !base[x].is_zero() as usize).sum();
-    (base.into_iter().filter(|x| !x.is_zero()).map(|x| x.coords.clone()).collect(), dim_subspace)
+    ortonormal
 }
 
 
 // generalised formula from https://mathworld.wolfram.com/Circumsphere.html
-// as well as https://en.wikipedia.org/wiki/Circumcircle both taken on the 11th of July 2026
+// https://en.wikipedia.org/wiki/Circumcircle
 fn circumsphere(boundary : &Vec<usize>, space : &PointSet) -> Ball {
     let dim = space.dim();
     let n = dim + 1; // length of boundary, if longer just take the first n
@@ -227,6 +270,8 @@ fn det_naive(A : &mut Vec<Vec<f64>>) -> f64 { // mut just to match with det_LU
 }
 
 
+// TODO implement partial pivoting to improve numerical stability
+// https://en.wikipedia.org/wiki/LU_decomposition
 fn det_LU(mut A : &mut Vec<Vec<f64>>) -> f64 {
     let n = A.len();
     let mut U = vec![vec![0.0; n]; n]; // only interested in the values on the diagonal

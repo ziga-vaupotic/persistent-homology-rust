@@ -1,6 +1,8 @@
 
 
 
+pub mod seb; // smallest enclosing ball
+
 mod ball;
 mod point;
 mod point_set;
