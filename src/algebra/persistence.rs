@@ -1,4 +1,4 @@
-use crate::algebra::matrices::{BoundaryMatrices, BoundaryMatrix, ReducedBoundaryMatrix, ReducedBoundaryMatrices};
+use crate::algebra::matrices::{ BoundaryMatrices, BoundaryMatrix, ReducedBoundaryMatrix, ReducedBoundaryMatrices };
 use std::collections::HashSet;
 
 pub struct PersistencePair {

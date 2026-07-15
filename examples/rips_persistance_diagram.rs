@@ -1,8 +1,7 @@
 use plotters::prelude::*;
-use vietoris_rips_rust::algebra::discretisation::build_boundary_matrices;
-use vietoris_rips_rust::algebra::discretisation::reduce_boundary_matrices;
+use vietoris_rips_rust::algebra::discretisation::{ build_boundary_matrices, reduce_boundary_matrices };
 use vietoris_rips_rust::algebra::persistence::compute_persistence_diagram;
-use vietoris_rips_rust::construction::rips::vietoris_rips;
+use vietoris_rips_rust::construction::vietoris_rips;
 use vietoris_rips_rust::io::csv::import_point_set;
 
 use std::path::Path;

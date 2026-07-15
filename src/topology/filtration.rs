@@ -1,8 +1,7 @@
 
 
 
-use crate::topology::simplex::Simplex;
-use crate::topology::simplical_complex::SimplicialComplex;
+use crate::topology::{ Simplex, SimplicialComplex };
 
 
 pub struct Filtration {
@@ -15,6 +14,32 @@ impl Filtration {
 
     pub fn new(simplices : Vec<Simplex>) -> Self {
         Self { simplices : simplices }
+    }
+
+
+    pub fn size(&self) -> usize {
+        self.simplices.len()
+    }
+
+    pub fn max_dim(&self) -> usize {
+        self.simplices.iter().max_by_key(|x| x.dim()).unwrap().dim()
+    }
+
+
+    pub fn max_filtration_value(&self) -> f64 {
+        self.simplices.iter()
+            .max_by(|x, y| x.filtration_value.partial_cmp(&y.filtration_value).unwrap()).unwrap()
+            .filtration_value
+    }
+
+
+    pub fn simplices_of_dim(&self, dim : usize) -> Vec<Simplex> {
+        let mut simplices : Vec<Simplex> = Vec::new();
+        for x in self.simplices.iter() {
+            if x.dim() != dim { continue; }
+            simplices.push(x.clone());
+        }
+        simplices
     }
 
 

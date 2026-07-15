@@ -1,6 +1,6 @@
 use plotters::prelude::*;
 use vietoris_rips_rust::io::csv::import_point_set;
-use vietoris_rips_rust::construction::rips::vietoris_rips;
+use vietoris_rips_rust::construction::vietoris_rips;
 
 use std::path::Path;
 
@@ -50,7 +50,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         .light_line_style(ShapeStyle::from(&RGBColor(200, 200, 200)).stroke_width(1))
         .draw()?;
 
-    for triangle in complex_at_epsilon.simplices.iter().filter(|s| s.dimension() == 2) {
+    for triangle in complex_at_epsilon.simplices.iter().filter(|s| s.dim() == 2) {
         let a = pointset.get(triangle.vertices[0]);
         let b = pointset.get(triangle.vertices[1]);
         let c = pointset.get(triangle.vertices[2]);
@@ -64,7 +64,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         )))?;
     }
 
-    for edge in complex_at_epsilon.simplices.iter().filter(|s| s.dimension() == 1) {
+    for edge in complex_at_epsilon.simplices.iter().filter(|s| s.dim() == 1) {
         let a = pointset.get(edge.vertices[0]);
         let b = pointset.get(edge.vertices[1]);
         chart.draw_series(LineSeries::new(

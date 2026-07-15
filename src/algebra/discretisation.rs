@@ -1,8 +1,6 @@
-use crate::topology::filtration::Filtration;
-use crate::topology::simplex::Simplex;
+use crate::topology::{ Filtration, Simplex };
 
-use crate::algebra::matrices::{BoundaryMatrices, BoundaryMatrix, ReducedBoundaryMatrices, ReducedBoundaryMatrix};
-
+use crate::algebra::matrices::{ BoundaryMatrices, BoundaryMatrix, ReducedBoundaryMatrices, ReducedBoundaryMatrix };
 
 use std::collections::HashMap;
 
@@ -16,7 +14,7 @@ pub fn build_boundary_matrices(
     let mut by_dim: Vec<Vec<&Simplex>> = Vec::new();
 
     for simplex in &filtration.simplices {
-        let d = simplex.dimension();
+        let d = simplex.dim();
 
         if d >= by_dim.len() {
             by_dim.resize(d + 1, Vec::new());
