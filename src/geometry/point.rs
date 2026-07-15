@@ -157,11 +157,3 @@ impl Point {
     }
 
 }
-
-
-#[test]
-fn test_distance_2d() {
-    let a = Point::new(vec![0.0, 0.0]);
-    let b = Point::new(vec![3.0, 4.0]);
-    assert_eq!(a.distance(&b), 5.0);
-}

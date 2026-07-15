@@ -84,7 +84,8 @@ fn from_boundary(boundary : &Vec<usize>, space : &PointSet) -> Ball { // |bounda
 
 
 // procedure :
-// find affine subspace containing boundary find isometry to R^(n - 1), where n is size of boundary
+// find smallest affine subspace containing boundary
+// find isometry to R^n subset R^d, where n is the dimension of that subspace
 // calculate miniball there then move the center back to original subspace
 // no need to change the radius as we have an isometry
 fn on_affine_subspace(boundary : &Vec<usize>, space : &PointSet) -> Ball {
@@ -257,10 +258,7 @@ fn det_naive(A : &mut Vec<Vec<f64>>) -> f64 { // mut just to match with det_LU
 // https://en.wikipedia.org/wiki/LU_decomposition
 fn det_LU(mut A : &mut Vec<Vec<f64>>) -> f64 {
     let n = A.len();
-    let mut U = vec![vec![0.0; n]; n]; // only interested in the values on the diagonal
-    let mut L = vec![vec![0.0; n]; n];
-
-    LU_decomposition(&mut L, &mut U, &mut A);
+    let (_U, L) = LU_decomposition(&mut A);
 
     let mut det = 1.0;
     for i in 0..n {
@@ -270,10 +268,11 @@ fn det_LU(mut A : &mut Vec<Vec<f64>>) -> f64 {
 }
 
 
-// assumes that the appropriate values of U and L ie. upper and lower triangles
-// respectively are already zero before input (not a problem if not)
-fn LU_decomposition(L : &mut Vec<Vec<f64>>, U : &mut Vec<Vec<f64>>, A : &mut Vec<Vec<f64>>) {
+fn LU_decomposition(A : &mut Vec<Vec<f64>>) -> (Vec<Vec<f64>>, Vec<Vec<f64>>) {
     let n = A.len();
+    let mut U = vec![vec![0.0; n]; n];
+    let mut L = vec![vec![0.0; n]; n];
+
     for i in 0..n {
         for j in i..n {
             L[j][i] = A[j][i];
@@ -292,4 +291,5 @@ fn LU_decomposition(L : &mut Vec<Vec<f64>>, U : &mut Vec<Vec<f64>>, A : &mut Vec
             }
         }
     }
+    (U, L)
 }

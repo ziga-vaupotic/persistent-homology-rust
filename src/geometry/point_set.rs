@@ -8,6 +8,7 @@ pub struct PointSet {
     dim: usize, // This is added as an enforcement of consistency in a nodeset
 }
 
+
 impl PointSet {
 
     pub fn new(points: Vec<Point>) -> Result<Self, String> {

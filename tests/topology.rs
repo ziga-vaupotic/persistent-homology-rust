@@ -1,6 +1,5 @@
-use vietoris_rips_rust::geometry::point::Point;
-use vietoris_rips_rust::geometry::point_set::PointSet;
-use vietoris_rips_rust::construction::rips::vietoris_rips;
+use vietoris_rips_rust::geometry::{ Point, PointSet };
+use vietoris_rips_rust::construction::vietoris_rips;
 
 
 #[test]

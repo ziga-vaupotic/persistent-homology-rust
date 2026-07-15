@@ -5,7 +5,7 @@ use std::{ error::Error, fs::File, path::Path, io::Write };
 use crate::geometry::{ Point, PointSet };
 
 use crate::topology::Filtration;
-use crate::algebra::PersistenceDiagram;
+use crate::algebra::persistence::PersistenceDiagram;
 
 
 use csv;

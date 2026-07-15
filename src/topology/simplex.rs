@@ -75,13 +75,13 @@ mod tests {
     #[test]
     fn test_simplex_dimension() {
         let simplex_0d = Simplex::new(vec![0], 0.0);
-        assert_eq!(simplex_0d.dimension(), 0);
+        assert_eq!(simplex_0d.dim(), 0);
 
         let simplex_1d = Simplex::new(vec![0, 1], 0.0);
-        assert_eq!(simplex_1d.dimension(), 1);
+        assert_eq!(simplex_1d.dim(), 1);
 
         let simplex_2d = Simplex::new(vec![0, 1, 2], 0.0);
-        assert_eq!(simplex_2d.dimension(), 2);
+        assert_eq!(simplex_2d.dim(), 2);
     }
 
     #[test]

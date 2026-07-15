@@ -10,7 +10,7 @@ use itertools::Itertools;
 
 pub struct Construction {
     pub simplices : Vec<Simplex>,
-    pub adjacency : HashMap<usize, Vec<usize>>,
+    pub adjacency : HashMap<usize, Vec<usize>>, // adjacency[v] = N(v)
     pub distance : HashMap<(usize, usize), f64>,
 
     pub max_dim : usize,
@@ -38,19 +38,21 @@ impl Construction {
     }
 
 
-    pub fn traverse_edges(&mut self, space : &PointSet, epsilon : f64, save_distance : bool) {
+    pub fn traverse_edges(&mut self, space : &PointSet, factor : f64, save_distance : bool) {
         (0..space.len()).for_each(|x| self.push(vec![x], 0.0)); // dim = 0
+
+        for i in 0..space.len() { self.adjacency.insert(i, Vec::new()); }
 
         for v in (0..space.len()).combinations(2) {
             let (x, y) = (v[0], v[1]); // x < y
             let d = space.get(x).distance(space.get(y));
 
-            if d > epsilon { continue }
-            self.push(v, d); // dim = 1
+            if d > factor * self.max_epsilon { continue }
+            self.push(v, d / factor); // dim = 1
 
             if save_distance { self.distance.insert((x, y), d); }
-            self.adjacency.entry(x).and_modify(|u| u.push(y)).or_insert(vec![y]);
-            self.adjacency.entry(y).and_modify(|u| u.push(x)).or_insert(vec![x]);
+            self.adjacency.entry(x).and_modify(|u| u.push(y));
+            self.adjacency.entry(y).and_modify(|u| u.push(x));
         }
         //adjacency[i] already ordered for all i as per property of combinations
     }

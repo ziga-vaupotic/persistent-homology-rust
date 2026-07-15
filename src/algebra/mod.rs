@@ -1,13 +1,4 @@
-
-
-
-mod discretisation;
-mod matrices;
-mod betti;
-mod persistence;
-
-
-pub use self::discretisation::*;
-pub use self::matrices::*;
-pub use self::betti::*;
-pub use self::persistence::*;
+pub mod discretisation;
+pub mod matrices;
+pub mod betti;
+pub mod persistence;

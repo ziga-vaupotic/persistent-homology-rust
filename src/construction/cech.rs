@@ -6,8 +6,6 @@ use crate::topology::Filtration;
 use crate::construction::{ cliques, Construction }; 
 
 
-// NOTE without approximation should only be used on very sparse graphs as it gets
-// extremely computationally expensive for larger cliques
 pub fn cech(
     space : &PointSet,
     max_epsilon : Option<f64>,
@@ -19,13 +17,12 @@ pub fn cech(
     let radius_tolerance = radius_tolerance.abs();
 
     let mut cons = Construction::new(max_dim, max_epsilon, radius_tolerance);
-    cons.traverse_edges(space, 2.0 * max_epsilon, false);
+    cons.traverse_edges(space, 2.0, false);
     if cons.no_adjacency() { return Filtration::new(cons.simplices); }
 
     let in_ball = if radius_tolerance == 0.0 { in_ball_exact } else { in_ball_approx };
 
-    let candidates : Vec<usize> = (0..space.len()).collect();
-    cliques::bron_kerbosch(candidates, space, in_ball, &mut cons);
+    cliques::find_all(space, in_ball, &mut cons);
 
     cons.sort_simplices();
     Filtration::new(cons.simplices)

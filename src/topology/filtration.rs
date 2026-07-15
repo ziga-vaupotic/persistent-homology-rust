@@ -33,6 +33,16 @@ impl Filtration {
     }
 
 
+    pub fn simplices_of_dim(&self, dim : usize) -> Vec<Simplex> {
+        let mut simplices : Vec<Simplex> = Vec::new();
+        for x in self.simplices.iter() {
+            if x.dim() != dim { continue; }
+            simplices.push(x.clone());
+        }
+        simplices
+    }
+
+
     // Instead of copying elements we could also get only a vector of references to simplices!
     pub fn get_simplicial_complex(&self, epsilon: f64) -> SimplicialComplex {
         SimplicialComplex {
