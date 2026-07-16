@@ -13,8 +13,7 @@ pub fn vietoris_rips(space : &PointSet, max_epsilon : Option<f64>, max_dim : Opt
     let max_dim = max_dim.unwrap_or(usize::MAX - 1);
 
     let mut cons = Construction::new(max_dim, max_epsilon, 0.0);
-    cons.traverse_edges(space, 1.0, true);
-    if cons.no_adjacency() { return Filtration::new(cons.simplices); }
+    if !cons.traverse_edges(space, 1.0, true) { return Filtration::new(cons.simplices); }
 
     cliques::find_all(space, rips_radius, &mut cons);
 

@@ -17,8 +17,7 @@ pub fn cech(
     let radius_tolerance = radius_tolerance.abs();
 
     let mut cons = Construction::new(max_dim, max_epsilon, radius_tolerance);
-    cons.traverse_edges(space, 2.0, false);
-    if cons.no_adjacency() { return Filtration::new(cons.simplices); }
+    if !cons.traverse_edges(space, 2.0, false) { return Filtration::new(cons.simplices); }
 
     let in_ball = if radius_tolerance == 0.0 { in_ball_exact } else { in_ball_approx };
 

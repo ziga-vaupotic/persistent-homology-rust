@@ -38,11 +38,12 @@ impl Construction {
     }
 
 
-    pub fn traverse_edges(&mut self, space : &PointSet, factor : f64, save_distance : bool) {
+    pub fn traverse_edges(&mut self, space : &PointSet, factor : f64, save_distance : bool) -> bool {
         let n = space.len();
         (0..n).for_each(|x| self.push(vec![x], 0.0)); // dim = 0
         (0..n).for_each(|x| { self.adjacency.insert(x, Vec::new()); });
 
+        let mut has_edges = false;
         for v in (0..n).combinations(2) {
             let (x, y) = (v[0], v[1]); // x < y
             let d = space.get(x).distance(space.get(y));
@@ -53,12 +54,11 @@ impl Construction {
             if save_distance { self.distance.insert((x, y), d); }
             self.adjacency.entry(x).and_modify(|u| u.push(y));
             self.adjacency.entry(y).and_modify(|u| u.push(x));
+
+            has_edges = true;
         }
         //adjacency[i] already ordered for all i as per property of combinations
-    }
-
-    pub fn no_adjacency(&self) -> bool {
-        self.adjacency.is_empty()
+        has_edges
     }
 
 

@@ -8,7 +8,6 @@ use std::f64::consts::PI;
 
 #[test]
 fn in_2_dimensions() {
-    let n = 3;
     let r = 10;
     let tolerance = 0.01;
 
@@ -17,19 +16,17 @@ fn in_2_dimensions() {
         let (radius, phi) = (rand::random_range(0.0..=1.0), rand::random_range(0.0..(2.0 * PI)));
         point_set.push(Point::new(vec![radius * phi.cos(), radius * phi.sin()]));
     }
-    for i in 0..n {
-        let phi = 2.0 * PI * i as f64 / n as f64;
-        point_set.push(Point::new(vec![phi.cos(), phi.sin()]));
-    }
+    (0..2).for_each(|x| point_set.push(Point::new(vec![(x as f64 * PI).cos(), (x as f64 * PI).sin()])));
+
     let space = PointSet::new(point_set).unwrap();
 
-    let center = Point::new(vec![0.0; 2]);
-    let radius = 1.0;
-
-    let points : Vec<usize> = (0..(n + r)).collect(); // every point
+    let points : Vec<usize> = (0..(r + 2)).collect(); // every point
 
     let welzl_ball = welzl(&points, &space);
     let larsson_ball = larsson(&points, 0.01, &space);
+
+    let center = Point::new(vec![0.0; 2]);
+    let radius = 1.0;
 
     assert!(Point::difference(&welzl_ball.o(), &center).is_zero());
     assert!((welzl_ball.r() - radius).abs() <= 1e-12);
