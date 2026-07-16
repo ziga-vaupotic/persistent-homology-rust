@@ -55,9 +55,7 @@ impl PointSet {
         let mut p = Point::new(Vec::new());
         for i in 0..self.dim() {
             let mut s = 0.0;
-            for &x in points {
-                s += self.get(x).coords[i];
-            }
+            points.iter().for_each(|&x| s += self.get(x).coords[i]);
             p.coords.push(s);
         }
         p

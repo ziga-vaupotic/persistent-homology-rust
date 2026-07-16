@@ -150,12 +150,8 @@ fn extend_to_basis(points : &Vec<Point>) -> (Vec<Vec<f64>>, usize) {
 
     let mut span : Vec<Point> = Vec::new();
 
-    for i in 0..n {
-        span.push(points[i].clone());
-    }
-    for i in 0..dim { // extend to span of R^dim
-        span.push(Point::standard_unit(i, dim));
-    }
+    (0..n).for_each(|x| span.push(points[x].clone()));
+    (0..dim).for_each(|x| span.push(Point::standard_unit(x, dim)));
 
     let mut candidates = gram_schmidt(&span);
     candidates = gram_schmidt(&candidates); // reortogonalisation

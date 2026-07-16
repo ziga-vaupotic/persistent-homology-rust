@@ -61,9 +61,7 @@ impl Point {
 
 
     pub fn add(&mut self, other : &Self) {
-        for i in 0..self.dim() {
-            self.coords[i] += other.coords[i];
-        }
+        (0..self.dim()).for_each(|x| self.coords[x] += other.coords[x]);
     }
 
 
@@ -79,9 +77,7 @@ impl Point {
         let mut p = Point::new(Vec::new());
         for i in 0..dim {
             let mut s = 0.0;
-            for x in points {
-                s += x.coords[i];
-            }
+            points.iter().for_each(|x| s += x.coords[i]);
             p.coords.push(s);
         }
         Ok(p)
@@ -96,9 +92,7 @@ impl Point {
         let mut p = Point::new(Vec::new());
         for i in 0..points[0].dim() {
             let mut s = 0.0;
-            for x in points {
-                s += x.coords[i];
-            }
+            points.iter().for_each(|x| s += x.coords[i]);
             p.coords.push(s);
         }
         p
@@ -106,18 +100,14 @@ impl Point {
 
 
     pub fn subtract(&mut self, other : &Self) {
-        for i in 0..self.dim() {
-            self.coords[i] -= other.coords[i];
-        }
+        (0..self.dim()).for_each(|x| self.coords[x] -= other.coords[x]);
     }
 
 
     // TODO add a safe version and move this to difference_no_check
     pub fn difference(a : &Point, b : &Point) -> Point {
         let mut dif : Vec<f64> = Vec::new();
-        for i in 0..a.dim() {
-            dif.push(a.coords[i] - b.coords[i]);
-        }
+        (0..a.dim()).for_each(|x| dif.push(a.coords[x] - b.coords[x]));
         Point::new(dif)
     }
 

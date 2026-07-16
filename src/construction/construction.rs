@@ -39,11 +39,11 @@ impl Construction {
 
 
     pub fn traverse_edges(&mut self, space : &PointSet, factor : f64, save_distance : bool) {
-        (0..space.len()).for_each(|x| self.push(vec![x], 0.0)); // dim = 0
+        let n = space.len();
+        (0..n).for_each(|x| self.push(vec![x], 0.0)); // dim = 0
+        (0..n).for_each(|x| { self.adjacency.insert(x, Vec::new()); });
 
-        for i in 0..space.len() { self.adjacency.insert(i, Vec::new()); }
-
-        for v in (0..space.len()).combinations(2) {
+        for v in (0..n).combinations(2) {
             let (x, y) = (v[0], v[1]); // x < y
             let d = space.get(x).distance(space.get(y));
 

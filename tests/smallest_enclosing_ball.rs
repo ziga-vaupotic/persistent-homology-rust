@@ -3,7 +3,6 @@
 
 use vietoris_rips_rust::geometry::{ Ball, Point, PointSet, seb::* };
 
-use rand::prelude::SliceRandom;
 use std::f64::consts::PI;
 
 
@@ -14,15 +13,14 @@ fn in_2_dimensions() {
     let tolerance = 0.01;
 
     let mut point_set : Vec<Point> = Vec::new();
-    for i in 0..n {
-        let phi = 2.0 * PI * i as f64 / n as f64;
-        point_set.push(Point::new(vec![phi.cos(), phi.sin()]));
-    }
     for i in 0..r { // scatter random points inside the unit disk
         let (radius, phi) = (rand::random_range(0.0..=1.0), rand::random_range(0.0..(2.0 * PI)));
         point_set.push(Point::new(vec![radius * phi.cos(), radius * phi.sin()]));
     }
-    point_set.shuffle(&mut rand::rng());
+    for i in 0..n {
+        let phi = 2.0 * PI * i as f64 / n as f64;
+        point_set.push(Point::new(vec![phi.cos(), phi.sin()]));
+    }
     let space = PointSet::new(point_set).unwrap();
 
     let center = Point::new(vec![0.0; 2]);
@@ -45,7 +43,7 @@ fn in_3_plus_dimensions() {
     let tolerance = 0.01;
 
     for dim in 3..=max_dim {
-        let mut point_set : Vec<Point> = (0..dim).map(|i| Point::standard_unit(i, dim)).collect();
+        let point_set : Vec<Point> = (0..dim).map(|i| Point::standard_unit(i, dim)).collect();
         let space = PointSet::new(point_set).unwrap();
 
         for i in 1..=dim {
