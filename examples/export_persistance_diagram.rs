@@ -10,14 +10,14 @@ use std::path::Path;
 
 
 fn main() {
-    let path_name = "circle";
+    let path_name = "torus";
     let path_data = format!("examples/data/{}.csv", path_name);
     let path = std::path::Path::new(&path_data);
 
-    let pointset = import_point_set_csv::<2>(path)
+    let pointset = import_point_set_csv::<3>(path)
         .expect("Failed to read CSV");
 
-    let filtration = vietoris_rips(&pointset, None, Some(2));
+    let filtration = vietoris_rips(&pointset, Some(4.0), Some(3));
 
 
     let path_filtration = format!("examples/data/{}_filtration.csv", path_name);

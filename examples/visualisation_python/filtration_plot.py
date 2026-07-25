@@ -81,8 +81,6 @@ if __name__ == "__main__":
 
     type = "circle"
 
-
-
     root_dir = Path(__file__).resolve().parent.parent.parent
     simplices = load_filtration(root_dir / f'examples/data/{type}_filtration.csv')
     points = load_points(root_dir / f'examples/data/{type}.csv')

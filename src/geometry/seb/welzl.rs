@@ -1,7 +1,7 @@
 
 
 
-use nalgebra::DMatrix;
+use nalgebra::{DMatrix, DVector};
 use rand::seq::SliceRandom;
 
 use crate::geometry::{ Point, PointSet, Ball };
@@ -90,90 +90,86 @@ fn from_boundary(boundary : &Vec<usize>, space : &PointSet) -> Ball { // |bounda
 // calculate miniball there then move the center back to original subspace
 // no need to change the radius as we have an isometry
 fn on_affine_subspace(boundary : &Vec<usize>, space : &PointSet) -> Ball {
-    let linear_parts : Vec<Point> = (1..boundary.len())
-        .map(|x| Point::difference(space.get(boundary[x]), space.get(boundary[0]))).collect();
+    let q0 = space.get(boundary[0]);
+    let dim = q0.dim();
 
-    // find Q such that Q(q_i - q_0) = (a_1, ..., a_n, 0, ..., 0)
-    let (mut Q, n) = extend_to_basis(&linear_parts); // orthonormal matrix => isometry
+    let linear_parts = DMatrix::from_fn(
+        dim,
+        boundary.len() - 1,
+        |row, col| {
+            space.get(boundary[col + 1]).coords[row]
+                - q0.coords[row]
+        },
+    );
 
-    let mut new_space_points : Vec<Point> = Vec::new();
-    for i in 0..n { // can just take the first n as they lie on a sphere going through the origin => LI
-        let mut u = multiply(&Q, &linear_parts[i].coords);
-        u.truncate(n); // all components after are zero as per Gram Schmidt
-        new_space_points.push(Point::new(u));
-    }
-    new_space_points.push(Point::new(vec![0.0; n])); // add the n + 1 th point
+    let (basis, n) = extend_to_basis(&linear_parts);
+
+    // Transform the vectors into the basis coordinates.
+    let transformed = basis.transpose() * &linear_parts;
+
+    let mut new_space_points: Vec<Point> = (0..n.min(linear_parts.ncols()))
+        .map(|i| {
+            let coords: Vec<f64> = (0..n).map(|j| transformed[(j, i)]).collect();
+            Point::new(coords)
+        })
+        .collect();
+    new_space_points.push(Point::new(vec![0.0; n]));
+
     let new_space = PointSet::new_no_check(new_space_points);
     let new_boundary : Vec<usize> = (0..(n + 1)).collect();
 
     // find center in subpace spanned by {Q(q_i - q_0)}_i
     let miniball = circumsphere(&new_boundary, &new_space);
 
-    // center = Q^T center_new + q_0
-    let center_new = miniball.o().coords.clone();
-    Q.truncate(n); // to match dim of center_new
-    let mut center = Point::new(multiply_transpose(&Q, &center_new));
-    center.add(space.get(boundary[0]));
+    // center = basis * center_new + q_0
+    let center_new_vec = DVector::from_vec(miniball.o().coords.clone());
+    let center_in_original_space = basis * center_new_vec;
+    let mut center = Point::new(center_in_original_space.iter().copied().collect());
+    center.add(q0);
 
     Ball::new(center, miniball.radius)
 }
 
 
-fn multiply(A : &Vec<Vec<f64>>, v : &Vec<f64>) -> Vec<f64> {
-    let m = A.len();
-    let n = A[0].len();
+fn extend_to_basis(points: &DMatrix<f64>) -> (DMatrix<f64>, usize) {
+    let dim = points.nrows();
+    let n = points.ncols();
 
-    let mut result : Vec<f64> = Vec::new();
-    for i in 0..m {
-        let s = (0..n).map(|j| v[j] * A[i][j]).sum::<f64>();
-        result.push(s);
+    let mut columns = Vec::new();
+    for col in 0..n {
+        columns.push((0..dim).map(|row| points[(row, col)]).collect::<Vec<f64>>());
     }
-    result
-}
-
-
-fn multiply_transpose(A : &Vec<Vec<f64>>, v : &Vec<f64>) -> Vec<f64> {
-    let m = A.len();
-    let n = A[0].len();
-
-    let mut result : Vec<f64> = Vec::new();
-    for i in 0..n {
-        let s = (0..m).map(|j| v[j] * A[j][i]).sum::<f64>();
-        result.push(s);
+    for i in 0..dim {
+        let mut e = vec![0.0; dim];
+        e[i] = 1.0;
+        columns.push(e);
     }
-    result
-}
 
+    let matrix = DMatrix::from_fn(dim, columns.len(), |row, col| {
+        columns[col][row]
+    });
 
-fn extend_to_basis(points : &Vec<Point>) -> (Vec<Vec<f64>>, usize) {
-    let candidates = gram_schmidt(points);
-    let dim_subspace = candidates.len();
-    let base : Vec<Vec<f64>> = candidates.iter().map(|x| x.coords.clone()).collect();
-
-    (base, dim_subspace)
-}
-
-
-// Use a QR decomposition instead?.
-fn gram_schmidt(points : &Vec<Point>) -> Vec<Point> {
-    let dim = points[0].dim();
-    let matrix = DMatrix::from_fn(dim, points.len(), |row, col| points[col].coords[row]);
     let qr = matrix.qr();
     let q = qr.q();
-    let r = qr.r();
-    let rank = (0..r.nrows().min(r.ncols()))
-        .filter(|&idx| r[(idx, idx)].abs() > 1e-12)
-        .count();
+    let rank = numerical_rank(&qr.r(), 1e-12);
 
-    (0..rank)
-        .map(|idx| {
-            let mut coords = vec![0.0; dim];
-            for row in 0..dim {
-                coords[row] = q[(row, idx)];
-            }
-            Point::new(coords)
-        })
-        .collect()
+    (q, rank)
+}
+
+fn numerical_rank(r: &DMatrix<f64>, tolerance: f64) -> usize {
+    let diagonal_len = r.nrows().min(r.ncols());
+
+    let max_diag = (0..diagonal_len)
+        .map(|i| r[(i, i)].abs())
+        .fold(0.0_f64, f64::max);
+
+    if max_diag == 0.0 {
+        return 0;
+    }
+
+    (0..diagonal_len)
+        .filter(|&i| r[(i, i)].abs() > tolerance * max_diag)
+        .count()
 }
 
 

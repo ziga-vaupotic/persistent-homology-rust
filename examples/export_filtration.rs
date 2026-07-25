@@ -11,14 +11,14 @@ use std::path::Path;
 
 fn main() {
 
-    let path_name = "circle";
+    let path_name = "torus";
     let path_data = format!("examples/data/{}.csv", path_name);
     let path = std::path::Path::new(&path_data);
 
-    let pointset = import_point_set_csv::<2>(path)
+    let pointset = import_point_set_csv::<3>(path)
         .expect("Failed to read CSV");
 
-    let filtration = cech(&pointset, None, Some(2), 1e-6);
+    let filtration = cech(&pointset, Some(1.0), Some(2), 1e-6);
 
     let path_filtration = format!("examples/data/{}_filtration.csv", path_name);
     export_filtration_csv(&path_filtration, &filtration).expect("Failed to export filtration!");
