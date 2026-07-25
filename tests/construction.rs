@@ -1,8 +1,8 @@
 
 
 
-use vietoris_rips_rust::geometry::{ Point, PointSet };
-use vietoris_rips_rust::construction::{ cech_exact, vietoris_rips };
+use persistent_homology::geometry::{ Point, PointSet };
+use persistent_homology::construction::{ cech_exact, vietoris_rips };
 
 use std::f64::consts::PI;
 

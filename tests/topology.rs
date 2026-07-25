@@ -1,5 +1,5 @@
-use vietoris_rips_rust::geometry::{ Point, PointSet };
-use vietoris_rips_rust::construction::vietoris_rips;
+use persistent_homology::geometry::{ Point, PointSet };
+use persistent_homology::construction::vietoris_rips;
 
 
 #[test]

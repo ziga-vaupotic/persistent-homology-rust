@@ -1,7 +1,7 @@
 
 
 
-use vietoris_rips_rust::geometry::{ Ball, Point, PointSet, seb::* };
+use persistent_homology::geometry::{ Ball, Point, PointSet, seb::* };
 
 use std::f64::consts::PI;
 

@@ -1,8 +1,8 @@
 use plotters::prelude::*;
-use vietoris_rips_rust::algebra::discretisation::{ build_boundary_matrices, reduce_boundary_matrices };
-use vietoris_rips_rust::algebra::persistence::compute_persistence_diagram;
-use vietoris_rips_rust::construction::vietoris_rips;
-use vietoris_rips_rust::io::csv::import_point_set;
+use persistent_homology::algebra::discretisation::{ build_boundary_matrices, reduce_boundary_matrices };
+use persistent_homology::algebra::persistence::compute_persistence_diagram;
+use persistent_homology::construction::vietoris_rips;
+use persistent_homology::io::csv::import_point_set;
 
 use std::path::Path;
 
