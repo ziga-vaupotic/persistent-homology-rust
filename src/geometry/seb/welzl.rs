@@ -138,11 +138,17 @@ where
     // center = basis * center_new + q_0
     let center_new_vec = miniball.o().coords.clone();
     let center_in_original_space = basis * center_new_vec;
-    Ball::new(&Point::new(center_in_original_space) + q0, miniball.radius)
+    let mut center = Point::new(center_in_original_space.iter().copied().collect());
+    center.add(q0);
+
+    Ball::new(center, miniball.radius)
 }
 
 
 fn extend_to_basis(points: &DMatrix<f64>) -> DMatrix<f64> {
+    let dim = points.nrows();
+    let n = points.ncols();
+
     let svd = points.clone().svd(true, false);
     let u = svd.u.unwrap();
     let sigma = svd.singular_values;
