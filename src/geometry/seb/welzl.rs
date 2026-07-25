@@ -102,12 +102,12 @@ fn on_affine_subspace(boundary : &Vec<usize>, space : &PointSet) -> Ball {
         },
     );
 
-    let (basis, n) = extend_to_basis(&linear_parts);
+    let basis = extend_to_basis(&linear_parts);
+    let n = basis.ncols();
 
-    // Transform the vectors into the basis coordinates.
     let transformed = basis.transpose() * &linear_parts;
 
-    let mut new_space_points: Vec<Point> = (0..n.min(linear_parts.ncols()))
+    let mut new_space_points: Vec<Point> = (0..n)
         .map(|i| {
             let coords: Vec<f64> = (0..n).map(|j| transformed[(j, i)]).collect();
             Point::new(coords)
@@ -131,45 +131,18 @@ fn on_affine_subspace(boundary : &Vec<usize>, space : &PointSet) -> Ball {
 }
 
 
-fn extend_to_basis(points: &DMatrix<f64>) -> (DMatrix<f64>, usize) {
+fn extend_to_basis(points: &DMatrix<f64>) -> DMatrix<f64> {
     let dim = points.nrows();
     let n = points.ncols();
 
-    let mut columns = Vec::new();
-    for col in 0..n {
-        columns.push((0..dim).map(|row| points[(row, col)]).collect::<Vec<f64>>());
-    }
-    for i in 0..dim {
-        let mut e = vec![0.0; dim];
-        e[i] = 1.0;
-        columns.push(e);
-    }
+    let svd = points.clone().svd(true, false);
+    let u = svd.u.unwrap();
+    let sigma = svd.singular_values;
 
-    let matrix = DMatrix::from_fn(dim, columns.len(), |row, col| {
-        columns[col][row]
-    });
+    let rank = sigma.iter().filter(|&&x| x > 1e-14).count();
+    let basis = u.columns(0, rank).into_owned();
 
-    let qr = matrix.qr();
-    let q = qr.q();
-    let rank = numerical_rank(&qr.r(), 1e-12);
-
-    (q, rank)
-}
-
-fn numerical_rank(r: &DMatrix<f64>, tolerance: f64) -> usize {
-    let diagonal_len = r.nrows().min(r.ncols());
-
-    let max_diag = (0..diagonal_len)
-        .map(|i| r[(i, i)].abs())
-        .fold(0.0_f64, f64::max);
-
-    if max_diag == 0.0 {
-        return 0;
-    }
-
-    (0..diagonal_len)
-        .filter(|&i| r[(i, i)].abs() > tolerance * max_diag)
-        .count()
+    basis
 }
 
 
