@@ -1,6 +1,7 @@
 
 
 
+use nalgebra::DMatrix;
 use rand::seq::SliceRandom;
 
 use crate::geometry::{ Point, PointSet, Ball };
@@ -145,41 +146,34 @@ fn multiply_transpose(A : &Vec<Vec<f64>>, v : &Vec<f64>) -> Vec<f64> {
 
 
 fn extend_to_basis(points : &Vec<Point>) -> (Vec<Vec<f64>>, usize) {
-    let dim = points[0].dim();
-    let n = points.len();
-
-    let mut span : Vec<Point> = Vec::new();
-
-    (0..n).for_each(|x| span.push(points[x].clone()));
-    (0..dim).for_each(|x| span.push(Point::standard_unit(x, dim)));
-
-    let mut candidates = gram_schmidt(&span);
-    candidates = gram_schmidt(&candidates); // reortogonalisation
-
-    let dim_subspace = (0..n).map(|x| !candidates[x].is_zero() as usize).sum();
-    candidates.retain(|x| !x.is_zero());
-    let base : Vec<Vec<f64>> = candidates.clone().iter().map(|x| x.coords.clone()).collect();
+    let candidates = gram_schmidt(points);
+    let dim_subspace = candidates.len();
+    let base : Vec<Vec<f64>> = candidates.iter().map(|x| x.coords.clone()).collect();
 
     (base, dim_subspace)
 }
 
 
-// https://en.wikipedia.org/wiki/Gram%E2%80%93Schmidt_process
-// NOTE using modified Gram Schmidt process to improve stability --- not perfect though
-// could implement a reortogonalization algorithm directly
-// https://doi.org/10.1016/j.camwa.2005.08.009
+// Use a QR decomposition instead?.
 fn gram_schmidt(points : &Vec<Point>) -> Vec<Point> {
-    let mut ortonormal = points.clone();
+    let dim = points[0].dim();
+    let matrix = DMatrix::from_fn(dim, points.len(), |row, col| points[col].coords[row]);
+    let qr = matrix.qr();
+    let q = qr.q();
+    let r = qr.r();
+    let rank = (0..r.nrows().min(r.ncols()))
+        .filter(|&idx| r[(idx, idx)].abs() > 1e-12)
+        .count();
 
-    ortonormal[0].normalize();
-    for i in 1..ortonormal.len() {
-        for j in i..points.len() {
-            let projection = Point::projection_normal(&points[j], &ortonormal[i - 1]);
-            ortonormal[j].subtract(&projection);
-        }
-        ortonormal[i].normalize();
-    }
-    ortonormal
+    (0..rank)
+        .map(|idx| {
+            let mut coords = vec![0.0; dim];
+            for row in 0..dim {
+                coords[row] = q[(row, idx)];
+            }
+            Point::new(coords)
+        })
+        .collect()
 }
 
 
@@ -190,8 +184,10 @@ fn circumsphere(boundary : &Vec<usize>, space : &PointSet) -> Ball {
     let n = dim + 1; // length of boundary
 
     fn det(A : &mut Vec<Vec<f64>>) -> f64 {
-        if A.len() < 6 { return det_naive(A); }
-        det_LU(A)
+        let n = A.len();
+        if n == 0 { return 1.0; }
+        let matrix = DMatrix::from_fn(n, n, |row, col| A[row][col]);
+        matrix.determinant()
     }
 
     let mut transpose : Vec<Vec<f64>> = Vec::new();
@@ -227,65 +223,26 @@ fn circumsphere(boundary : &Vec<usize>, space : &PointSet) -> Ball {
 }
 
 
-// n! < n^3 for n < 6 => faster than LU for small n
-fn det_naive(A : &mut Vec<Vec<f64>>) -> f64 { // mut just to match with det_LU
-    if A.len() == 1 { return A[0][0]; }
-    if A.len() == 2 { return A[0][0] * A[1][1] - A[0][1] * A[1][0]; }
-    if A.len() == 3 {
-        return A[0][0] * (A[1][1] * A[2][2] - A[2][1] * A[1][2])
-            - A[0][1] * (A[1][0] * A[2][2] - A[2][0] * A[1][2])
-            + A[0][2] * (A[1][0] * A[2][1] - A[2][0] * A[1][1]);
+
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn circumsphere_for_right_triangle_matches_expected() {
+        let points = vec![
+            Point::new(vec![0.0, 0.0]),
+            Point::new(vec![1.0, 0.0]),
+            Point::new(vec![0.0, 1.0]),
+        ];
+        let space = PointSet::new_no_check(points);
+        let boundary = vec![0, 1, 2];
+
+        let ball = circumsphere(&boundary, &space);
+
+        assert!((ball.o().coords[0] - 0.5).abs() < 1e-10);
+        assert!((ball.o().coords[1] - 0.5).abs() < 1e-10);
+        assert!((ball.radius - (2.0_f64).sqrt() / 2.0).abs() < 1e-10);
     }
-
-    let mut result = 0.0;
-    for i in 0..A.len() {
-        let mut A_i = A.clone();
-        A_i.remove(0);
-        for j in 0..A_i.len() {
-            A_i[j].remove(i);
-        }
-        result += (-1.0_f64).powf(i as f64) * A[0][i] * det_naive(&mut A_i);
-    }
-    result
-}
-
-
-// TODO implement partial pivoting to improve numerical stability
-// https://en.wikipedia.org/wiki/LU_decomposition
-fn det_LU(mut A : &mut Vec<Vec<f64>>) -> f64 {
-    let n = A.len();
-    let (_U, L) = LU_decomposition(&mut A);
-
-    let mut det = 1.0;
-    for i in 0..n {
-        det *= L[i][i];
-    }
-    det
-}
-
-
-fn LU_decomposition(A : &mut Vec<Vec<f64>>) -> (Vec<Vec<f64>>, Vec<Vec<f64>>) {
-    let n = A.len();
-    let mut U = vec![vec![0.0; n]; n];
-    let mut L = vec![vec![0.0; n]; n];
-
-    for i in 0..n {
-        for j in i..n {
-            L[j][i] = A[j][i];
-            for k in 0..i {
-                L[j][i] = L[j][i] - L[j][k] * U[k][i];
-            }
-        }
-        for j in i..n {
-            if L[i][i].abs() < 1e-12 { // tolerance
-                U[i][j] = 0.0;
-                continue;
-            }
-            U[i][j] = A[i][j] / L[i][i];
-            for k in 0..i {
-                U[i][j] = U[i][j] - ((L[i][k] * U[k][j]) / L[i][i]);
-            }
-        }
-    }
-    (U, L)
 }

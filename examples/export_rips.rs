@@ -6,6 +6,8 @@ use vietoris_rips_rust::algebra::persistence::compute_persistence_diagram;
 use vietoris_rips_rust::geometry::PointSet;
 use vietoris_rips_rust::io::csv::{ export_filtration_csv, export_persistence_csv, import_point_set };
 use vietoris_rips_rust::construction::vietoris_rips;
+use vietoris_rips_rust::construction::cech;
+
 
 use std::path::Path;
 
@@ -18,7 +20,7 @@ fn main() {
     let pointset = import_point_set::<2>(path)
         .expect("Failed to read CSV");
 
-    let filtration = vietoris_rips(&pointset, None, Some(2));
+    let filtration = cech(&pointset, None, Some(2), 1e-6);
 
 
 
