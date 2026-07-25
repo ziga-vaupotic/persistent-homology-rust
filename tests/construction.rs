@@ -1,7 +1,7 @@
 
 
 
-use persistent_homology::geometry::{ Point, PointSet };
+use persistent_homology::geometry::{ EuclideanInnerProduct, Point, PointCloud };
 use persistent_homology::construction::{ cech_exact, vietoris_rips };
 
 use std::f64::consts::PI;
@@ -9,7 +9,7 @@ use std::f64::consts::PI;
 
 #[test]
 fn single_point() {
-    let space = PointSet::new(vec![Point::new(vec![0.0; 3])]).unwrap();
+    let space = PointCloud::new(vec![Point::new(vec![0.0; 3])], EuclideanInnerProduct).unwrap();
 
     let rips_filtration = vietoris_rips(&space, None, None);
     let cech_filtration = cech_exact(&space, None, None);
@@ -30,7 +30,7 @@ fn triangle() {
         let phi = 2.0 * PI * i as f64 / n as f64;
         point_set.push(Point::new(vec![phi.cos(), phi.sin()]));
     }
-    let space = PointSet::new(point_set).unwrap();
+    let space = PointCloud::new(point_set, EuclideanInnerProduct).unwrap();
 
     let rips_filtration = vietoris_rips(&space, None, None);
     let cech_filtration = cech_exact(&space, None, None);
@@ -74,7 +74,7 @@ fn grid_2_dim() {
             point_set.push(Point::new(vec![i as f64, j as f64]));
         }
     }
-    let space = PointSet::new(point_set).unwrap();
+    let space = PointCloud::new(point_set, EuclideanInnerProduct).unwrap();
     let rips_filtration = vietoris_rips(&space, Some(2.0_f64.sqrt()), None);
     let cech_filtration = cech_exact(&space, Some(2.0_f64.sqrt() / 2.0), None);
 
@@ -103,7 +103,7 @@ fn grid_3_dim() {
             }
         }
     }
-    let space = PointSet::new(point_set).unwrap();
+    let space = PointCloud::new(point_set, EuclideanInnerProduct).unwrap();
     let rips_filtration = vietoris_rips(&space, Some(2.0_f64.sqrt()), None);
     let cech_filtration = cech_exact(&space, Some(2.0_f64.sqrt() / 2.0), None);
 

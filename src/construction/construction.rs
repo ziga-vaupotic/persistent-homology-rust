@@ -1,7 +1,7 @@
 
 
 
-use crate::geometry::PointSet;
+use crate::geometry::{ Metric, PointCloud };
 use crate::topology::Simplex;
 
 use std::collections::HashMap;
@@ -38,7 +38,10 @@ impl Construction {
     }
 
 
-    pub fn traverse_edges(&mut self, space : &PointSet, factor : f64, save_distance : bool) -> bool {
+    pub fn traverse_edges<M>(&mut self, space : &PointCloud<M>, factor : f64, save_distance : bool) -> bool
+    where
+        M : Metric
+    {
         let n = space.len();
         (0..n).for_each(|x| self.push(vec![x], 0.0)); // dim = 0
         (0..n).for_each(|x| { self.adjacency.insert(x, Vec::new()); });
@@ -46,7 +49,7 @@ impl Construction {
         let mut has_edges = false;
         for v in (0..n).combinations(2) {
             let (x, y) = (v[0], v[1]); // x < y
-            let d = space.get(x).distance(space.get(y));
+            let d = space.distance(space.get(x),space.get(y));
 
             if d > factor * self.max_epsilon { continue }
             self.push(v, d / factor); // dim = 1
