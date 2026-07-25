@@ -1,4 +1,4 @@
-## Persistence homology in Rust
+## Persistent homology in Rust
 
 
 ## Overview
@@ -7,10 +7,6 @@ This project servers as a lightweight implementation of persistent homology in R
 
 Examples can be found in the `examples` folder.
 
-
-## Why persistence?
-
-Let $(M. d)$ be a metric space, and $K \subset M$
 ![image](logo.png)
 This is a picture of Vietoris-Rips complex in Euclidean space $\mathbb{R}^2$ over the filtration with $\varepsilon=2.4$. The point cloud represents a noisy spiral.
 ***
