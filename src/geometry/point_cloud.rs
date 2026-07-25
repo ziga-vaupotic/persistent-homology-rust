@@ -13,15 +13,11 @@ pub struct Point {
 
 impl Point {
 
-    pub fn new(coords : Vec<f64>) -> Self {
-        Self { coords : DVector::from_vec(coords) }
+    pub fn new(coords: impl Into<DVector<f64>>) -> Self {
+        Self {
+            coords: coords.into(),
+        }
     }
-
-
-    pub fn new_from_dvec(coords : DVector<f64>) -> Self {
-        Self { coords : coords }
-    }
-
 
     pub fn len(&self) -> usize {
         self.coords.len()
@@ -79,6 +75,7 @@ impl Point {
     }
 
 }
+
 
 
 impl std::ops::Add<&Point> for &Point {
@@ -179,11 +176,9 @@ impl<M> PointCloud<M>
 where
     M: InnerProduct
 {
-
     pub fn norm_squared(&self, a : &Point) -> f64 {
         self.geometry.dot(a, a)
     }
-
 
     pub fn norm(&self, a : &Point) -> f64 {
         self.norm_squared(a).sqrt()

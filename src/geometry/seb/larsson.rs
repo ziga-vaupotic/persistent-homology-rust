@@ -1,7 +1,7 @@
 
 
 
-use crate::geometry::{ Ball, Point, PointCloud, Euclidian };
+use crate::geometry::{ Ball, Point, PointCloud, Euclidean };
 
 
 // T. Larsson, L. Källberg, Fast and Robust Approximation of Smallest Enclosing Balls
@@ -11,7 +11,7 @@ use crate::geometry::{ Ball, Point, PointCloud, Euclidian };
 // NOTE r_optimal <= r_larsson <= r_optimal (1 + epsilon)
 pub fn larsson<M>(points : &Vec<usize>, epsilon : f64, space : &PointCloud<M>) -> Ball
 where
-    M : Euclidian
+    M : Euclidean
 {
     let delta = epsilon / 2.0;
     let mut C : Vec<Point> = Vec::new();
@@ -37,7 +37,7 @@ where
 
 fn solve_approx_ball<M>(mut c : Ball, P : &Vec<Point>, delta : f64, space : &PointCloud<M>) -> Ball
 where
-    M : Euclidian
+    M : Euclidean
 {
     loop {
         let (q, h) = farthest_point::<M>(c.o(), P, space);
@@ -49,7 +49,7 @@ where
 
 fn farthest_point<M>(p : &Point, P : &Vec<Point>, space : &PointCloud<M>) -> (Point, f64)
 where
-    M : Euclidian
+    M : Euclidean
 {
     let mut max_distance = 0.0;
     let mut farthest_point = p.clone();
@@ -66,7 +66,7 @@ where
 
 fn farthest_point_space<M>(p : &Point, P : &Vec<usize>, space : &PointCloud<M>) -> (Point, f64)
 where
-    M : Euclidian
+    M : Euclidean
 {
     let (mut max_distance, mut max_index) = (0.0, 0);
     for &i in P.iter() {

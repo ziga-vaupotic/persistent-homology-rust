@@ -4,7 +4,7 @@
 use nalgebra::DMatrix;
 use rand::seq::SliceRandom;
 
-use crate::geometry::{ Point, PointCloud, Ball, Euclidian };
+use crate::geometry::{ Point, PointCloud, Ball, Euclidean };
 
 
 // E. Welzl, Smallest enclosing disks (balls and ellipsoids), 1991
@@ -18,7 +18,7 @@ use crate::geometry::{ Point, PointCloud, Ball, Euclidian };
 // time so Gärtner 1999 should be prefered in most cases (once its implemented)
 pub fn welzl<M> (points : &Vec<usize>, space : &PointCloud<M>) -> Ball 
 where 
-    M: Euclidian
+    M: Euclidean
 {
     let mut P = points.clone();
     P.shuffle(&mut rand::rng());
@@ -32,7 +32,7 @@ where
 // unfortunatelly rust LinkedLists do not support remove/insert operations (nightly versions only)
 fn welzl_rec<M> (P : &mut Vec<usize>, B : Vec<usize>, space : &PointCloud<M>) -> Ball
 where 
-    M: Euclidian
+    M: Euclidean
 {
     let mut miniball = from_boundary(&B, space);
     let p = miniball.clone();
@@ -72,7 +72,7 @@ fn cut_at(P : &Vec<usize>, x : usize) -> Vec<usize> {
 
 fn from_boundary<M> (boundary : &Vec<usize>, space : &PointCloud<M>) -> Ball // |boundary| <= dim + 1
 where 
-    M: Euclidian
+    M: Euclidean
 {
     match boundary.len() {
         0 => return Ball::new(Point::new(Vec::new()), 0.0),
@@ -102,7 +102,7 @@ where
 // no need to change the radius as we have an isometry
 fn on_affine_subspace<M> (boundary : &Vec<usize>, space : &PointCloud<M>) -> Ball
 where 
-    M: Euclidian
+    M: Euclidean
 {
     let q0 = space.get(boundary[0]);
     let dim = q0.len();
@@ -138,7 +138,7 @@ where
     // center = basis * center_new + q_0
     let center_new_vec = miniball.o().coords.clone();
     let center_in_original_space = basis * center_new_vec;
-    Ball::new(&Point::new_from_dvec(center_in_original_space) + q0, miniball.radius)
+    Ball::new(&Point::new(center_in_original_space) + q0, miniball.radius)
 }
 
 
@@ -158,7 +158,7 @@ fn extend_to_basis(points: &DMatrix<f64>) -> DMatrix<f64> {
 // https://en.wikipedia.org/wiki/Circumcircle
 fn circumsphere<M> (boundary : &Vec<usize>, space : &PointCloud<M>) -> Ball
 where 
-    M: Euclidian
+    M: Euclidean
 {
     let dim = space.dim();
     let n = dim + 1; // length of boundary

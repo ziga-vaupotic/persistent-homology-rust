@@ -1,7 +1,7 @@
 
 
 
-use persistent_homology::geometry::{ EuclidianInnerProduct, Point, PointCloud, seb::* };
+use persistent_homology::geometry::{ EuclideanInnerProduct, Point, PointCloud, seb::* };
 
 use std::f64::consts::PI;
 
@@ -18,7 +18,7 @@ fn in_2_dimensions() {
     }
     (0..2).for_each(|x| point_set.push(Point::new(vec![(x as f64 * PI).cos(), (x as f64 * PI).sin()])));
 
-    let space = PointCloud::new(point_set, EuclidianInnerProduct).unwrap();
+    let space = PointCloud::new(point_set, EuclideanInnerProduct).unwrap();
 
     let points : Vec<usize> = (0..(r + 2)).collect(); // every point
 
@@ -41,12 +41,12 @@ fn in_3_plus_dimensions() {
 
     for dim in 3..=max_dim {
         let point_set : Vec<Point> = (0..dim).map(|i| Point::standard_unit(i, dim)).collect();
-        let space = PointCloud::new(point_set, EuclidianInnerProduct).unwrap();
+        let space = PointCloud::new(point_set, EuclideanInnerProduct).unwrap();
 
         for i in 1..=dim {
             let points : Vec<usize> = (0..i).collect();
 
-            let center = Point::new((0..dim).map(|x| if x < i { 1.0 / i as f64 } else { 0.0 }).collect());
+            let center = Point::new((0..dim).map(|x| if x < i { 1.0 / i as f64 } else { 0.0 }).collect::<Vec<f64>>());
             let radius = space.distance(&center, space.get(0));
 
             let welzl_ball = welzl(&points, &space);
