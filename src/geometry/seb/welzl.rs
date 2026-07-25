@@ -163,36 +163,24 @@ where
     let dim = space.dim();
     let n = dim + 1; // length of boundary
 
-    fn det(A : &mut Vec<Vec<f64>>) -> f64 {
-        let n = A.len();
-        if n == 0 { return 1.0; }
-        let matrix = DMatrix::from_fn(n, n, |row, col| A[row][col]);
-        matrix.determinant()
-    }
-
-    let mut transpose : Vec<Vec<f64>> = Vec::new();
-    for i in 0..dim {
-        let x_js : Vec<f64> = (0..n).map(|x| space.get(boundary[x]).coords[i]).collect();
-        transpose.push(x_js);
-    }
     let norms : Vec<f64> = (0..n).map(|x| space.norm_squared(space.get(boundary[x]))).collect();
-    let ones = vec![1.0; n];
 
     let mut c : Vec<f64> = Vec::new();
     for i in 0..dim {
-        let mut M_i : Vec<Vec<f64>> = Vec::new(); // D_x, D_y, ... in wolfram reference
-        M_i.push(norms.clone());
-        for j in 0..dim {
-            if j == i { continue; }
-            M_i.push(transpose[j].clone());
-        }
-        M_i.push(ones.clone());
-        c.push((-1.0_f64).powf(i as f64) * det(&mut M_i));
+        let M_i = DMatrix::from_fn(n, n, |row, col| {
+                if col == 0 { return norms[row]; }
+                if col == dim { return 1.0; }
+                if col < i + 1 { space.get(boundary[row]).coords[col - 1] }
+                else { space.get(boundary[row]).coords[col] }
+        });
+        c.push((-1.0_f64).powf(i as f64) * M_i.determinant());
     }
 
-    let mut A : Vec<Vec<f64>> = (0..dim).map(|x| transpose[x].clone()).collect();
-    A.push(ones);
-    let a = 1.0 / (2.0 * det(&mut A));
+    let A = DMatrix::from_fn(n, n, |row, col| {
+        if col == dim { return 1.0; }
+        space.get(boundary[row]).coords[col]
+    });
+    let a = 1.0 / (2.0 * A.determinant());
 
     let mut center = Point::new(c);
     center.multiply(a);
@@ -201,30 +189,3 @@ where
 
     Ball::new(center, radius)
 }
-
-
-
-
-/*
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn circumsphere_for_right_triangle_matches_expected() {
-        let points = vec![
-            Point::new(vec![0.0, 0.0]),
-            Point::new(vec![1.0, 0.0]),
-            Point::new(vec![0.0, 1.0]),
-        ];
-        let space = PointCloud<M>::new_no_check(points);
-        let boundary = vec![0, 1, 2];
-
-        let ball = circumsphere(&boundary, &space);
-
-        assert!((ball.o().coords[0] - 0.5).abs() < 1e-10);
-        assert!((ball.o().coords[1] - 0.5).abs() < 1e-10);
-        assert!((ball.radius - (2.0_f64).sqrt() / 2.0).abs() < 1e-10);
-    }
-}
-*/
