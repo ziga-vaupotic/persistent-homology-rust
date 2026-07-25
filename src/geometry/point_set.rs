@@ -1,19 +1,40 @@
 
 
 
-use crate::geometry::Point;
+use crate::geometry::space::*;
+use crate::geometry::{Ball};
 
-pub struct PointSet {
+
+#[derive(Clone)]
+pub struct Point {
+    pub coords: Vec<f64>,
+}
+
+
+impl Point {
+    pub fn new(coords : Vec<f64>) -> Self {
+        Self { coords : coords }
+    }
+
+
+    pub fn len(&self) -> usize {
+        self.coords.len()
+    }
+}
+
+
+pub struct PointCloud <M> {
     points: Vec<Point>,
+    metric: M, // Metric space e.g.
     dim: usize, // This is added as an enforcement of consistency in a nodeset
 }
 
 
-impl PointSet {
-
-    pub fn new(points: Vec<Point>) -> Result<Self, String> {
+impl<M> PointCloud<M>
+{
+    pub fn new(points: Vec<Point>, metric: M) -> Result<Self, String> {
         if points.is_empty() {
-            return Ok(Self { points, dim: 0 });
+            return Ok(Self { points, metric, dim: 0 });
         }
 
         let dim = points[0].coords.len();
@@ -21,7 +42,7 @@ impl PointSet {
             return Err("Inconsistent point dimensions".into());
         }
 
-        Ok(Self { points, dim })
+        Ok(Self { points, metric, dim })
     }
 
 
@@ -59,6 +80,17 @@ impl PointSet {
             p.coords.push(s);
         }
         p
+    }
+}
+
+
+impl<M> PointCloud<M>
+where 
+    M: Metric,
+{
+
+    pub fn contained_in_ball(&self, ball: &Ball, point: &Point) -> bool {
+        self.metric.distance(ball.o(), point) <= ball.r()
     }
 
 }

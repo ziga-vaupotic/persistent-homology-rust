@@ -2,7 +2,7 @@
 
 
 use std::{ error::Error, fs::File, path::Path, io::Write };
-use crate::geometry::{ Point, PointSet };
+use crate::geometry::{ Point, PointCloud };
 
 use crate::topology::Filtration;
 use crate::algebra::persistence::PersistenceDiagram;
@@ -12,7 +12,7 @@ use csv;
 
 pub fn import_point_set_csv<const D: usize>(
     path: &Path,
-) -> Result<PointSet, Box<dyn Error>> {
+) -> Result<PointCloud, Box<dyn Error>> {
     let file = File::open(path)?;
     let mut rdr = csv::ReaderBuilder::new()
         .has_headers(false)

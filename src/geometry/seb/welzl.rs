@@ -4,7 +4,7 @@
 use nalgebra::{DMatrix, DVector};
 use rand::seq::SliceRandom;
 
-use crate::geometry::{ Point, PointSet, Ball };
+use crate::geometry::{PointCloud, Ball, InnerProduct };
 
 
 // E. Welzl, Smallest enclosing disks (balls and ellipsoids), 1991
@@ -16,7 +16,10 @@ use crate::geometry::{ Point, PointSet, Ball };
 // provided, it cannot be much better
 // this specific implementation also calculates the ball from a given boundary from scratch every
 // time so Gärtner 1999 should be prefered in most cases (once its implemented)
-pub fn welzl(points : &Vec<usize>, space : &PointSet) -> Ball {
+pub fn welzl<M> (points : &Vec<usize>, space : &PointCloud<M>) -> Ball 
+where 
+    M: InnerProduct,
+{
     let mut P = points.clone();
     P.shuffle(&mut rand::rng());
 
@@ -27,7 +30,7 @@ pub fn welzl(points : &Vec<usize>, space : &PointSet) -> Ball {
 // using Gärtner 1999 move-to-front implementation
 // NOTE should probably be using LinkedList instead of Vec
 // unfortunatelly rust LinkedLists do not support remove/insert operations (nightly versions only)
-fn welzl_rec(P : &mut Vec<usize>, B : Vec<usize>, space : &PointSet) -> Ball {
+fn welzl_rec<M> (P : &mut Vec<usize>, B : Vec<usize>, space : &PointCloud<M>) -> Ball {
     let mut miniball = from_boundary(&B, space);
     if P.is_empty() || B.len() == space.dim() + 1 {
         return miniball;
@@ -62,7 +65,7 @@ fn cut_at(P : &Vec<usize>, x : usize) -> Vec<usize> {
 }
 
 
-fn from_boundary(boundary : &Vec<usize>, space : &PointSet) -> Ball { // |boundary| <= dim + 1
+fn from_boundary<M> (boundary : &Vec<usize>, space : &PointCloud<M>) -> Ball { // |boundary| <= dim + 1
     match boundary.len() {
         0 => return Ball::new(Point::new(Vec::new()), 0.0),
         1 => return Ball::new(space.get(boundary[0]).clone(), 0.0),
@@ -102,12 +105,12 @@ fn on_affine_subspace(boundary : &Vec<usize>, space : &PointSet) -> Ball {
         },
     );
 
-    let (basis, n) = extend_to_basis(&linear_parts);
+    let basis = extend_to_basis(&linear_parts);
+    let n = basis.ncols();
 
-    // Transform the vectors into the basis coordinates.
     let transformed = basis.transpose() * &linear_parts;
 
-    let mut new_space_points: Vec<Point> = (0..n.min(linear_parts.ncols()))
+    let mut new_space_points: Vec<Point> = (0..n)
         .map(|i| {
             let coords: Vec<f64> = (0..n).map(|j| transformed[(j, i)]).collect();
             Point::new(coords)
@@ -131,33 +134,18 @@ fn on_affine_subspace(boundary : &Vec<usize>, space : &PointSet) -> Ball {
 }
 
 
-fn extend_to_basis(points: &DMatrix<f64>) -> (DMatrix<f64>, usize) {
+fn extend_to_basis(points: &DMatrix<f64>) -> DMatrix<f64> {
     let dim = points.nrows();
     let n = points.ncols();
 
-    let matrix = DMatrix::from_fn(dim, n, |row, col| points[(row, col)]);
-    let qr = matrix.qr();
-    let q = qr.q();
-    let rank = numerical_rank(&qr.r(), 1e-12);
+    let svd = points.clone().svd(true, false);
+    let u = svd.u.unwrap();
+    let sigma = svd.singular_values;
 
-    let basis = q.columns(0, rank).into_owned();
-    (basis, rank)
-}
+    let rank = sigma.iter().filter(|&&x| x > 1e-14).count();
+    let basis = u.columns(0, rank).into_owned();
 
-fn numerical_rank(r: &DMatrix<f64>, tolerance: f64) -> usize {
-    let diagonal_len = r.nrows().min(r.ncols());
-
-    let max_diag = (0..diagonal_len)
-        .map(|i| r[(i, i)].abs())
-        .fold(0.0_f64, f64::max);
-
-    if max_diag == 0.0 {
-        return 0;
-    }
-
-    (0..diagonal_len)
-        .filter(|&i| r[(i, i)].abs() > tolerance * max_diag)
-        .count()
+    basis
 }
 
 
