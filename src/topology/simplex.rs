@@ -1,6 +1,3 @@
-
-
-
 #[derive(Debug, Clone)]
 pub struct Simplex {
     pub vertices: Vec<usize>,
@@ -10,26 +7,21 @@ pub struct Simplex {
 use std::hash::{Hash, Hasher};
 
 impl PartialEq for Simplex {
-
     fn eq(&self, other: &Self) -> bool {
         self.vertices == other.vertices
     }
-
 }
 
 impl Eq for Simplex {}
 
 /* This will be used for indexing when computing homology */
 impl Hash for Simplex {
-
     fn hash<H: Hasher>(&self, state: &mut H) {
         self.vertices.hash(state);
     }
-
 }
 
 impl Simplex {
-
     pub fn new(vertices: Vec<usize>, filtration_value: f64) -> Self {
         let mut verts = vertices;
         verts.sort();
@@ -57,9 +49,7 @@ impl Simplex {
         }
         result
     }
-
 }
-
 
 #[cfg(test)]
 mod tests {
@@ -111,5 +101,4 @@ mod tests {
         assert_eq!(bound[1], (-1, Simplex::new(vec![0, 2], 0.0)));
         assert_eq!(bound[2], (1, Simplex::new(vec![0, 1], 0.0)));
     }
-
 }

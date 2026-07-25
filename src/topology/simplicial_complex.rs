@@ -1,9 +1,5 @@
-
-
-
 use crate::topology::Simplex;
 
-
 pub struct SimplicialComplex {
-    pub simplices: Vec<Simplex>
+    pub simplices: Vec<Simplex>,
 }

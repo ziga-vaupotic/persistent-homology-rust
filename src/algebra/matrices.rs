@@ -1,4 +1,3 @@
-
 use std::collections::HashMap;
 
 // The boundary matrix is an element of GF(2)
@@ -16,10 +15,7 @@ pub struct ReducedBoundaryMatrix {
 }
 
 impl BoundaryMatrix {
-    pub fn new(
-        mut columns: Vec<Vec<usize>>,
-        column_indices: Vec<usize>,
-    ) -> Self {
+    pub fn new(mut columns: Vec<Vec<usize>>, column_indices: Vec<usize>) -> Self {
         assert_eq!(columns.len(), column_indices.len());
 
         for col in &mut columns {
@@ -96,7 +92,6 @@ impl BoundaryMatrix {
             matrix[j] = col;
         }
 
-
         let mut nonzero = 0;
         let mut zero = 0;
 
@@ -121,13 +116,15 @@ impl BoundaryMatrix {
 
     // Computes ranks of the largest chain complex
     pub fn rank(&self) -> usize {
-        self.reduce().low.into_iter().filter(|x| x.is_some()).count()
+        self.reduce()
+            .low
+            .into_iter()
+            .filter(|x| x.is_some())
+            .count()
     }
-
 }
 pub type BoundaryMatrices = Vec<BoundaryMatrix>;
 pub type ReducedBoundaryMatrices = Vec<ReducedBoundaryMatrix>;
-
 
 #[cfg(test)]
 mod tests {
@@ -140,24 +137,14 @@ mod tests {
 
     #[test]
     fn test_new_sorts_and_dedups() {
-        let bm = test_boundary_matrix(vec![
-            vec![3, 1, 1, 2],
-            vec![2, 2, 0],
-        ]);
+        let bm = test_boundary_matrix(vec![vec![3, 1, 1, 2], vec![2, 2, 0]]);
 
-        assert_eq!(bm.columns(), &vec![
-            vec![1, 2, 3],
-            vec![0, 2],
-        ]);
+        assert_eq!(bm.columns(), &vec![vec![1, 2, 3], vec![0, 2],]);
     }
 
     #[test]
     fn test_rank_independent_columns() {
-        let bm = test_boundary_matrix(vec![
-            vec![0],
-            vec![1],
-            vec![2],
-        ]);
+        let bm = test_boundary_matrix(vec![vec![0], vec![1], vec![2]]);
 
         assert_eq!(bm.rank(), 3);
     }
@@ -165,33 +152,21 @@ mod tests {
     #[test]
     fn test_rank_single_dependency() {
         // c3 = c1 + c2 over GF(2)
-        let bm = test_boundary_matrix(vec![
-            vec![0, 1],
-            vec![1],
-            vec![0],
-        ]);
+        let bm = test_boundary_matrix(vec![vec![0, 1], vec![1], vec![0]]);
 
         assert_eq!(bm.rank(), 2);
     }
 
     #[test]
     fn test_rank_full_dependency() {
-        let bm = test_boundary_matrix(vec![
-            vec![0],
-            vec![0],
-            vec![0],
-        ]);
+        let bm = test_boundary_matrix(vec![vec![0], vec![0], vec![0]]);
 
         assert_eq!(bm.rank(), 1);
     }
 
     #[test]
     fn test_reduce_pivots_consistent_with_rank() {
-        let bm = test_boundary_matrix(vec![
-            vec![0],
-            vec![1],
-            vec![0, 1],
-        ]);
+        let bm = test_boundary_matrix(vec![vec![0], vec![1], vec![0, 1]]);
 
         let rank_from_low = bm.reduce().low.iter().filter(|x| x.is_some()).count();
         let rank_direct = bm.rank();
@@ -201,11 +176,7 @@ mod tests {
 
     #[test]
     fn test_pivots_are_valid_indices() {
-        let bm = test_boundary_matrix(vec![
-            vec![0],
-            vec![1],
-            vec![2],
-        ]);
+        let bm = test_boundary_matrix(vec![vec![0], vec![1], vec![2]]);
 
         let reduce = bm.reduce();
 
@@ -216,10 +187,7 @@ mod tests {
 
     #[test]
     fn test_rank_never_exceeds_columns() {
-        let bm = test_boundary_matrix(vec![
-            vec![0, 1],
-            vec![1],
-        ]);
+        let bm = test_boundary_matrix(vec![vec![0, 1], vec![1]]);
 
         assert!(bm.rank() <= bm.columns().len());
     }

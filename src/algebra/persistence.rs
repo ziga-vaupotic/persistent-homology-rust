@@ -1,4 +1,4 @@
-use crate::algebra::matrices::{ ReducedBoundaryMatrix, ReducedBoundaryMatrices };
+use crate::algebra::matrices::{ReducedBoundaryMatrices, ReducedBoundaryMatrix};
 use std::collections::HashSet;
 
 pub struct PersistencePair {
@@ -55,16 +55,11 @@ pub fn compute_persistence(
     pairs
 }
 
-pub fn compute_persistence_diagram(
-    matrices: &ReducedBoundaryMatrices
-) -> PersistenceDiagram {
+pub fn compute_persistence_diagram(matrices: &ReducedBoundaryMatrices) -> PersistenceDiagram {
     let mut pairs = Vec::new();
 
     for (dimension, matrix) in matrices.iter().enumerate() {
-        pairs.extend(compute_persistence(
-            matrix,
-            dimension,
-        ));
+        pairs.extend(compute_persistence(matrix, dimension));
     }
 
     PersistenceDiagram { pairs }

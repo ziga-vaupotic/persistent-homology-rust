@@ -1,14 +1,10 @@
-
-use persistent_homology::geometry::{ EuclideanInnerProduct };
-use persistent_homology::io::csv::{ export_filtration_csv, import_point_set_csv };
-use persistent_homology::construction::vietoris_rips;
 use persistent_homology::construction::cech;
-
+use persistent_homology::geometry::EuclideanInnerProduct;
+use persistent_homology::io::csv::{export_filtration_csv, import_point_set_csv};
 
 use std::path::Path;
 
 fn main() {
-
     let path_name = "torus";
     let path_data = format!("examples/data/{}.csv", path_name);
     let path = Path::new(&path_data);

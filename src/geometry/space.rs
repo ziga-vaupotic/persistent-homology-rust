@@ -1,14 +1,14 @@
-use crate::geometry::{Point};
+use crate::geometry::Point;
 
-pub trait Metric : Copy {
+pub trait Metric: Copy {
     fn distance(&self, a: &Point, b: &Point) -> f64;
 }
 
-pub trait Norm : Copy {
+pub trait Norm: Copy {
     fn norm(&self, a: &Point) -> f64;
 }
 
-pub trait InnerProduct : Copy {
+pub trait InnerProduct: Copy {
     fn dot(&self, a: &Point, b: &Point) -> f64;
 }
 
@@ -25,14 +25,13 @@ impl<T: InnerProduct> Norm for T {
     }
 }
 
-pub trait Euclidean : InnerProduct {} // specific inner product space
+pub trait Euclidean: InnerProduct {} // specific inner product space
 
 #[derive(Clone, Copy)]
 pub struct EuclideanInnerProduct;
 
-
 impl InnerProduct for EuclideanInnerProduct {
-    fn dot(&self, a : &Point, b : &Point) -> f64 {
+    fn dot(&self, a: &Point, b: &Point) -> f64 {
         a.coords.dot(&b.coords)
     }
 }
