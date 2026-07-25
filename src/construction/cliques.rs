@@ -1,15 +1,18 @@
 
 
 
-use crate::geometry::PointSet;
+use crate::geometry::{ Metric, PointCloud };
 use crate::construction::Construction;
 
 
-pub fn find_all(
-    space : &PointSet,
-    radius : fn(&Vec<usize>, &PointSet, &Construction) -> Option<f64>,
+pub fn find_all<M> (
+    space : &PointCloud<M>,
+    radius : fn(&Vec<usize>, &PointCloud<M>, &Construction) -> Option<f64>,
     cons : &mut Construction
-) {
+)
+where
+    M : Metric
+{
     // TODO add degeneracy ordering
     // do not forget that candidates still has to be ordered
     // https://arxiv.org/abs/1006.5440
@@ -34,13 +37,16 @@ pub fn find_all(
 // instead of pivoting at max_(v in P union X) (N(v) intersection (P union X)) as the article
 // suggests is optimal a more practical approach might be to just find max_(v in P union X) |N(v)|
 // NOTE assuming candidates and adjacency[i] are already sorted
-fn bron_kerbosch(
+fn bron_kerbosch<M> (
     clique : Vec<usize>,
     candidates : Vec<usize>,
-    space : &PointSet,
-    radius : fn(&Vec<usize>, &PointSet, &Construction) -> Option<f64>,
+    space : &PointCloud<M>,
+    radius : fn(&Vec<usize>, &PointCloud<M>, &Construction) -> Option<f64>,
     cons : &mut Construction
-) {
+)
+where
+    M : Metric
+{
     if clique.len() > 2 {
         match radius(&clique, space, cons) {
             Some(d) => cons.push(clique.clone(), d),

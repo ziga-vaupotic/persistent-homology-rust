@@ -2,13 +2,20 @@
 
 
 use crate::construction::{ cliques, Construction }; 
-use crate::geometry::PointSet;
+use crate::geometry::{ Metric, PointCloud };
 use crate::topology::Filtration;
 
 use itertools::Itertools;
 
 
-pub fn vietoris_rips(space : &PointSet, max_epsilon : Option<f64>, max_dim : Option<usize>) -> Filtration {
+pub fn vietoris_rips<M>(
+    space : &PointCloud<M>,
+    max_epsilon : Option<f64>,
+    max_dim : Option<usize>
+) -> Filtration
+where
+    M : Metric
+{
     let max_epsilon = max_epsilon.unwrap_or(f64::MAX);
     let max_dim = max_dim.unwrap_or(usize::MAX - 1);
 
@@ -22,7 +29,10 @@ pub fn vietoris_rips(space : &PointSet, max_epsilon : Option<f64>, max_dim : Opt
 }
 
 
-fn rips_radius(clique : &Vec<usize>, _space : &PointSet, cons : &Construction) -> Option<f64> {
+fn rips_radius<M>(clique : &Vec<usize>, _space : &PointCloud<M>, cons : &Construction) -> Option<f64>
+where
+    M : Metric
+{
     let mut max_d = 0.0;
     for v in (0..clique.len()).combinations(2) {
         let d = cons.distance[&(clique[v[0]], clique[v[1]])];

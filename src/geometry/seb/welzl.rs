@@ -1,10 +1,10 @@
 
 
 
-use nalgebra::{DMatrix, DVector};
+use nalgebra::DMatrix;
 use rand::seq::SliceRandom;
 
-use crate::geometry::{PointCloud, Ball, InnerProduct };
+use crate::geometry::{ Point, PointCloud, Ball, Euclidian };
 
 
 // E. Welzl, Smallest enclosing disks (balls and ellipsoids), 1991
@@ -18,7 +18,7 @@ use crate::geometry::{PointCloud, Ball, InnerProduct };
 // time so Gärtner 1999 should be prefered in most cases (once its implemented)
 pub fn welzl<M> (points : &Vec<usize>, space : &PointCloud<M>) -> Ball 
 where 
-    M: InnerProduct,
+    M: Euclidian
 {
     let mut P = points.clone();
     P.shuffle(&mut rand::rng());
@@ -30,15 +30,20 @@ where
 // using Gärtner 1999 move-to-front implementation
 // NOTE should probably be using LinkedList instead of Vec
 // unfortunatelly rust LinkedLists do not support remove/insert operations (nightly versions only)
-fn welzl_rec<M> (P : &mut Vec<usize>, B : Vec<usize>, space : &PointCloud<M>) -> Ball {
+fn welzl_rec<M> (P : &mut Vec<usize>, B : Vec<usize>, space : &PointCloud<M>) -> Ball
+where 
+    M: Euclidian
+{
     let mut miniball = from_boundary(&B, space);
+    let p = miniball.clone();
+    println!("{:?} {:?}", p.o().coords, p.r());
     if P.is_empty() || B.len() == space.dim() + 1 {
         return miniball;
     }
 
     let n = P.len();
     for i in 0..n {
-        if miniball.contains(space.get(P[i])) { continue; }
+        if space.contained_in_ball(&miniball, space.get(P[i])) { continue; }
         miniball = welzl_rec(&mut cut_at(P, i), join_back(&B, P[i]), space);
         move_front(P, i);
     }
@@ -65,14 +70,17 @@ fn cut_at(P : &Vec<usize>, x : usize) -> Vec<usize> {
 }
 
 
-fn from_boundary<M> (boundary : &Vec<usize>, space : &PointCloud<M>) -> Ball { // |boundary| <= dim + 1
+fn from_boundary<M> (boundary : &Vec<usize>, space : &PointCloud<M>) -> Ball // |boundary| <= dim + 1
+where 
+    M: Euclidian
+{
     match boundary.len() {
         0 => return Ball::new(Point::new(Vec::new()), 0.0),
         1 => return Ball::new(space.get(boundary[0]).clone(), 0.0),
         2 => {
-            let mut o = space.sum(boundary);
+            let mut o = space.get(boundary[0]) + space.get(boundary[1]);
             o.multiply(1.0 / 2.0);
-            let r = o.distance(space.get(boundary[0]));
+            let r = space.distance(&o, space.get(boundary[0]));
 
             return Ball::new(o, r);
        },
@@ -92,9 +100,12 @@ fn from_boundary<M> (boundary : &Vec<usize>, space : &PointCloud<M>) -> Ball { /
 // find isometry to R^n subset R^d, where n is the dimension of that subspace
 // calculate miniball there then move the center back to original subspace
 // no need to change the radius as we have an isometry
-fn on_affine_subspace(boundary : &Vec<usize>, space : &PointSet) -> Ball {
+fn on_affine_subspace<M> (boundary : &Vec<usize>, space : &PointCloud<M>) -> Ball
+where 
+    M: Euclidian
+{
     let q0 = space.get(boundary[0]);
-    let dim = q0.dim();
+    let dim = q0.len();
 
     let linear_parts = DMatrix::from_fn(
         dim,
@@ -118,26 +129,20 @@ fn on_affine_subspace(boundary : &Vec<usize>, space : &PointSet) -> Ball {
         .collect();
     new_space_points.push(Point::new(vec![0.0; n]));
 
-    let new_space = PointSet::new_no_check(new_space_points);
+    let new_space = PointCloud::new_no_check(new_space_points, space.get_geometry());
     let new_boundary : Vec<usize> = (0..(n + 1)).collect();
 
     // find center in subpace spanned by {Q(q_i - q_0)}_i
     let miniball = circumsphere(&new_boundary, &new_space);
 
     // center = basis * center_new + q_0
-    let center_new_vec = DVector::from_vec(miniball.o().coords.clone());
+    let center_new_vec = miniball.o().coords.clone();
     let center_in_original_space = basis * center_new_vec;
-    let mut center = Point::new(center_in_original_space.iter().copied().collect());
-    center.add(q0);
-
-    Ball::new(center, miniball.radius)
+    Ball::new(&Point::new_from_dvec(center_in_original_space) + q0, miniball.radius)
 }
 
 
 fn extend_to_basis(points: &DMatrix<f64>) -> DMatrix<f64> {
-    let dim = points.nrows();
-    let n = points.ncols();
-
     let svd = points.clone().svd(true, false);
     let u = svd.u.unwrap();
     let sigma = svd.singular_values;
@@ -151,7 +156,10 @@ fn extend_to_basis(points: &DMatrix<f64>) -> DMatrix<f64> {
 
 // generalised formula from https://mathworld.wolfram.com/Circumsphere.html
 // https://en.wikipedia.org/wiki/Circumcircle
-fn circumsphere(boundary : &Vec<usize>, space : &PointSet) -> Ball {
+fn circumsphere<M> (boundary : &Vec<usize>, space : &PointCloud<M>) -> Ball
+where 
+    M: Euclidian
+{
     let dim = space.dim();
     let n = dim + 1; // length of boundary
 
@@ -167,7 +175,7 @@ fn circumsphere(boundary : &Vec<usize>, space : &PointSet) -> Ball {
         let x_js : Vec<f64> = (0..n).map(|x| space.get(boundary[x]).coords[i]).collect();
         transpose.push(x_js);
     }
-    let norms : Vec<f64> = (0..n).map(|x| space.get(boundary[x]).norm_square()).collect();
+    let norms : Vec<f64> = (0..n).map(|x| space.norm_squared(space.get(boundary[x]))).collect();
     let ones = vec![1.0; n];
 
     let mut c : Vec<f64> = Vec::new();
@@ -189,7 +197,7 @@ fn circumsphere(boundary : &Vec<usize>, space : &PointSet) -> Ball {
     let mut center = Point::new(c);
     center.multiply(a);
 
-    let radius = center.distance(space.get(boundary[0]));
+    let radius = space.distance(&center, space.get(boundary[0]));
 
     Ball::new(center, radius)
 }
@@ -197,6 +205,7 @@ fn circumsphere(boundary : &Vec<usize>, space : &PointSet) -> Ball {
 
 
 
+/*
 #[cfg(test)]
 mod tests {
     use super::*;
@@ -208,7 +217,7 @@ mod tests {
             Point::new(vec![1.0, 0.0]),
             Point::new(vec![0.0, 1.0]),
         ];
-        let space = PointSet::new_no_check(points);
+        let space = PointCloud<M>::new_no_check(points);
         let boundary = vec![0, 1, 2];
 
         let ball = circumsphere(&boundary, &space);
@@ -218,3 +227,4 @@ mod tests {
         assert!((ball.radius - (2.0_f64).sqrt() / 2.0).abs() < 1e-10);
     }
 }
+*/

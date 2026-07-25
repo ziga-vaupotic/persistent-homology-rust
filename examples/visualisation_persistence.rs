@@ -3,6 +3,7 @@ use persistent_homology::algebra::discretisation::{ build_boundary_matrices, red
 use persistent_homology::algebra::persistence::compute_persistence_diagram;
 use persistent_homology::construction::vietoris_rips;
 use persistent_homology::io::csv::import_point_set_csv;
+use persistent_homology::geometry::EuclidianInnerProduct;
 
 use std::path::Path;
 
@@ -20,7 +21,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let path = std::path::Path::new(&path_data);
 
 
-    let pointset = import_point_set_csv::<2>(path)?;
+    let pointset = import_point_set_csv::<2, EuclidianInnerProduct>(path, EuclidianInnerProduct)?;
     let filtration = vietoris_rips(&pointset, None, Some(2));
 
     let matrices = build_boundary_matrices(&filtration);
