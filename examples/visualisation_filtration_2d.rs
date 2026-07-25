@@ -1,10 +1,9 @@
-use plotters::prelude::*;
-use persistent_homology::io::csv::import_point_set_csv;
 use persistent_homology::construction::vietoris_rips;
 use persistent_homology::geometry::EuclideanInnerProduct;
+use persistent_homology::io::csv::import_point_set_csv;
+use plotters::prelude::*;
 
 use std::path::Path;
-
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let path = Path::new("examples/data/circle.csv");
@@ -27,7 +26,8 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let y_max = ys.iter().cloned().fold(f64::NEG_INFINITY, f64::max);
     let margin = 1.0;
 
-    let root: DrawingArea<BitMapBackend<'_>, plotters::coord::Shift> = BitMapBackend::new("test.png", (640, 480)).into_drawing_area();
+    let root: DrawingArea<BitMapBackend<'_>, plotters::coord::Shift> =
+        BitMapBackend::new("test.png", (640, 480)).into_drawing_area();
     root.fill(&WHITE)?;
 
     let root = root.margin(10, 10, 10, 10);
@@ -74,20 +74,15 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
         ))?;
     }
 
-    chart.draw_series(
-        PointSeries::of_element(
-            (0..pointset.len()).map(|i| {
-                let p = pointset.get(i);
-                (p.coords[0], p.coords[1])
-            }),
-            4,
-            &BLACK,
-            &|c: (f64, f64), s, st| {
-                EmptyElement::at(c)
-                    + Circle::new((0, 0), s, st.filled())
-            },
-        )
-    )?;
+    chart.draw_series(PointSeries::of_element(
+        (0..pointset.len()).map(|i| {
+            let p = pointset.get(i);
+            (p.coords[0], p.coords[1])
+        }),
+        4,
+        &BLACK,
+        &|c: (f64, f64), s, st| EmptyElement::at(c) + Circle::new((0, 0), s, st.filled()),
+    ))?;
     root.present()?;
     Ok(())
 }

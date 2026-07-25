@@ -1,10 +1,6 @@
-
-
-
 mod filtration;
 mod simplex;
 mod simplicial_complex;
-
 
 pub use self::filtration::*;
 pub use self::simplex::*;

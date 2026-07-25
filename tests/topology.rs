@@ -1,6 +1,5 @@
-use persistent_homology::geometry::{ EuclideanInnerProduct, Point, PointCloud };
 use persistent_homology::construction::vietoris_rips;
-
+use persistent_homology::geometry::{EuclideanInnerProduct, Point, PointCloud};
 
 #[test]
 fn test_filtration_is_sorted() {
@@ -10,26 +9,30 @@ fn test_filtration_is_sorted() {
         Point::new(vec![0.5, 1.0]),
     ];
 
-    let pointset = PointCloud::new(points, EuclideanInnerProduct).expect("Pointset couldn't be generated.");
+    let pointset =
+        PointCloud::new(points, EuclideanInnerProduct).expect("Pointset couldn't be generated.");
 
     let filtration = vietoris_rips(&pointset, None, Some(1));
 
     for i in 1..filtration.simplices.len() {
-        assert!(filtration.simplices[i - 1].filtration_value <= filtration.simplices[i].filtration_value);
+        assert!(
+            filtration.simplices[i - 1].filtration_value
+                <= filtration.simplices[i].filtration_value
+        );
     }
 }
-
 
 #[test]
 fn test_simple_persistence_example() {
     // Two points close together, one far away
     let points = vec![
         Point::new(vec![0.0, 0.0]),
-        Point::new(vec![0.1, 0.0]), // close to first
+        Point::new(vec![0.1, 0.0]),  // close to first
         Point::new(vec![10.0, 0.0]), // far away
     ];
 
-    let pointset = PointCloud::new(points, EuclideanInnerProduct).expect("Pointset couldn't be generated.");
+    let pointset =
+        PointCloud::new(points, EuclideanInnerProduct).expect("Pointset couldn't be generated.");
 
     let filtration = vietoris_rips(&pointset, None, Some(1));
 
@@ -37,11 +40,15 @@ fn test_simple_persistence_example() {
     assert_eq!(filtration.simplices.len(), 6); // 3 verts + 3 edges
 
     // The close edge should have lower filtration
-    let close_edge_filtration = filtration.simplices.iter()
+    let close_edge_filtration = filtration
+        .simplices
+        .iter()
         .find(|s| s.vertices == vec![0, 1])
         .unwrap()
         .filtration_value;
-    let far_edge_filtration = filtration.simplices.iter()
+    let far_edge_filtration = filtration
+        .simplices
+        .iter()
         .find(|s| s.vertices == vec![0, 2])
         .unwrap()
         .filtration_value;

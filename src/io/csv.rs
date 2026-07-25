@@ -1,20 +1,17 @@
+use crate::geometry::{Point, PointCloud};
+use std::{error::Error, fs::File, io::Write, path::Path};
 
-
-
-use std::{ error::Error, fs::File, path::Path, io::Write };
-use crate::geometry::{ Point, PointCloud };
-
-use crate::topology::Filtration;
 use crate::algebra::persistence::PersistenceDiagram;
-
+use crate::topology::Filtration;
 
 use csv;
 
-pub fn import_point_set_csv<const D: usize, M> (
+pub fn import_point_set_csv<const D: usize, M>(
     path: &Path,
-    geometry : M
+    geometry: M,
 ) -> Result<PointCloud<M>, Box<dyn Error>>
-where M : Copy
+where
+    M: Copy,
 {
     let file = File::open(path)?;
     let mut rdr = csv::ReaderBuilder::new()
@@ -42,19 +39,11 @@ where M : Copy
     Ok(PointCloud::new(points, geometry)?)
 }
 
-
-pub fn export_filtration_csv(
-    path: &str,
-    filtration: &Filtration,
-) -> Result<(), Box<dyn Error>> {
+pub fn export_filtration_csv(path: &str, filtration: &Filtration) -> Result<(), Box<dyn Error>> {
     let mut file = File::create(path)?;
 
     let mut simplices = filtration.simplices.clone();
-    simplices.sort_by(|a, b| {
-        a.filtration_value
-            .partial_cmp(&b.filtration_value)
-            .unwrap()
-    });
+    simplices.sort_by(|a, b| a.filtration_value.partial_cmp(&b.filtration_value).unwrap());
 
     for simplex in simplices {
         write!(file, "{}", simplex.filtration_value)?;
