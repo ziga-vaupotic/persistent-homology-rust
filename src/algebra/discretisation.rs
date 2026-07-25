@@ -1,6 +1,6 @@
 use crate::topology::{ Filtration, Simplex };
 
-use crate::algebra::matrices::{ BoundaryMatrices, BoundaryMatrix, ReducedBoundaryMatrices, ReducedBoundaryMatrix };
+use crate::algebra::matrices::{ BoundaryMatrices, BoundaryMatrix, ReducedBoundaryMatrices };
 
 use std::collections::HashMap;
 

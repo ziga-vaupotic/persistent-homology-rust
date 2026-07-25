@@ -13,7 +13,7 @@ The project currently supports:
 - Point clouds over arbitrary metric spaces
 - Simplexes and simplicial complexes
 - Filtration of abstract types
-- Vietoris-Rips complex
+- clique based Vietoris-Rips and Čech complexes
 - Boundary operator discretisation
 - Boundary matrices and $\mathbb{Z}_2$ reduction
 - Betti number computation

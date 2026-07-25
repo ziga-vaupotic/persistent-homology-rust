@@ -1,7 +1,4 @@
-
-
-use crate::geometry::Point;
-
+use crate::geometry::{Point};
 
 
 #[derive(Clone)]
@@ -17,19 +14,12 @@ impl Ball {
         Self { center : center, radius : radius }
     }
 
-
     pub fn o(&self) -> &Point {
         &self.center
     }
 
-
     pub fn r(&self) -> f64 {
         self.radius
-    }
-
-
-    pub fn contains(&self, point : &Point) -> bool {
-        self.center.dim() > 0 && self.center.distance(point) <= self.radius
     }
 
 }

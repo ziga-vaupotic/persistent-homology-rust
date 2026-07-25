@@ -1,5 +1,5 @@
-use vietoris_rips_rust::geometry::{ Point, PointSet };
-use vietoris_rips_rust::construction::vietoris_rips;
+use persistent_homology::geometry::{ EuclideanInnerProduct, Point, PointCloud };
+use persistent_homology::construction::vietoris_rips;
 
 
 #[test]
@@ -10,7 +10,7 @@ fn test_filtration_is_sorted() {
         Point::new(vec![0.5, 1.0]),
     ];
 
-    let pointset = PointSet::new(points).expect("Pointset couldn't be generated.");
+    let pointset = PointCloud::new(points, EuclideanInnerProduct).expect("Pointset couldn't be generated.");
 
     let filtration = vietoris_rips(&pointset, None, Some(1));
 
@@ -29,7 +29,7 @@ fn test_simple_persistence_example() {
         Point::new(vec![10.0, 0.0]), // far away
     ];
 
-    let pointset = PointSet::new(points).expect("Pointset couldn't be generated.");
+    let pointset = PointCloud::new(points, EuclideanInnerProduct).expect("Pointset couldn't be generated.");
 
     let filtration = vietoris_rips(&pointset, None, Some(1));
 

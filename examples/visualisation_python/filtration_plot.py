@@ -1,6 +1,8 @@
 import csv
+from pathlib import Path
 import matplotlib.pyplot as plt
-
+from matplotlib.widgets import Slider
+from mpl_toolkits.mplot3d.art3d import Poly3DCollection
 
 def load_points(path):
     points = []
@@ -76,8 +78,12 @@ def plot(points, simplices_pts, edges, triangles):
 
 
 if __name__ == "__main__":
-    points = load_points("../../data.csv")
-    simplices = load_filtration("../../filtration.csv")
+
+    type = "circle"
+
+    root_dir = Path(__file__).resolve().parent.parent.parent
+    simplices = load_filtration(root_dir / f'examples/data/{type}_filtration.csv')
+    points = load_points(root_dir / f'examples/data/{type}.csv')
 
     eps = 0.3
 
