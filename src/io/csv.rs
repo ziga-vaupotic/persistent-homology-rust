@@ -10,7 +10,7 @@ use crate::algebra::persistence::PersistenceDiagram;
 
 use csv;
 
-pub fn import_point_set<const D: usize>(
+pub fn import_point_set_csv<const D: usize>(
     path: &Path,
 ) -> Result<PointSet, Box<dyn Error>> {
     let file = File::open(path)?;

@@ -1,5 +1,5 @@
 use plotters::prelude::*;
-use persistent_homology::io::csv::import_point_set;
+use persistent_homology::io::csv::import_point_set_csv;
 use persistent_homology::construction::vietoris_rips;
 
 use std::path::Path;
@@ -8,7 +8,7 @@ use std::path::Path;
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let path = Path::new("data.csv");
 
-    let pointset = import_point_set::<2>(path)?;
+    let pointset = import_point_set_csv::<2>(path)?;
     let filtration = vietoris_rips(&pointset, None, Some(2));
     let epsilon = 15.0;
     let complex_at_epsilon = filtration.get_simplicial_complex(epsilon);

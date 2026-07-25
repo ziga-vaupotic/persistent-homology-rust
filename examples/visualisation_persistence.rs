@@ -2,7 +2,7 @@ use plotters::prelude::*;
 use persistent_homology::algebra::discretisation::{ build_boundary_matrices, reduce_boundary_matrices };
 use persistent_homology::algebra::persistence::compute_persistence_diagram;
 use persistent_homology::construction::vietoris_rips;
-use persistent_homology::io::csv::import_point_set;
+use persistent_homology::io::csv::import_point_set_csv;
 
 use std::path::Path;
 
@@ -15,9 +15,12 @@ struct PersistencePoint {
 
 
 fn main() -> Result<(), Box<dyn std::error::Error>> {
-    let path = Path::new("data.csv");
+    let path_name = "circle";
+    let path_data = format!("examples/data/{}.csv", path_name);
+    let path = std::path::Path::new(&path_data);
 
-    let pointset = import_point_set::<2>(path)?;
+
+    let pointset = import_point_set_csv::<2>(path)?;
     let filtration = vietoris_rips(&pointset, None, Some(2));
 
     let matrices = build_boundary_matrices(&filtration);
@@ -26,7 +29,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let mut max_filtration: f64 = 0.0;
 
 
-    let matrices = build_boundary_matrices(&filtration);
+    let matrices: Vec<persistent_homology::algebra::matrices::BoundaryMatrix> = build_boundary_matrices(&filtration);
 
     let reduced_matrices = reduce_boundary_matrices(&matrices);
 
