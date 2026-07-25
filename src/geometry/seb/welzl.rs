@@ -135,25 +135,13 @@ fn extend_to_basis(points: &DMatrix<f64>) -> (DMatrix<f64>, usize) {
     let dim = points.nrows();
     let n = points.ncols();
 
-    let mut columns = Vec::new();
-    for col in 0..n {
-        columns.push((0..dim).map(|row| points[(row, col)]).collect::<Vec<f64>>());
-    }
-    for i in 0..dim {
-        let mut e = vec![0.0; dim];
-        e[i] = 1.0;
-        columns.push(e);
-    }
-
-    let matrix = DMatrix::from_fn(dim, columns.len(), |row, col| {
-        columns[col][row]
-    });
-
+    let matrix = DMatrix::from_fn(dim, n, |row, col| points[(row, col)]);
     let qr = matrix.qr();
     let q = qr.q();
     let rank = numerical_rank(&qr.r(), 1e-12);
 
-    (q, rank)
+    let basis = q.columns(0, rank).into_owned();
+    (basis, rank)
 }
 
 fn numerical_rank(r: &DMatrix<f64>, tolerance: f64) -> usize {
