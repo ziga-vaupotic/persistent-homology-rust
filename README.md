@@ -87,5 +87,5 @@ This is a picture of Vietoris-Rips complex in Euclidean space $\mathbb{R}^2$ ove
 
 
 ## Use of Artificial Intelligence
-Artificial intelligence was USED during the development of the library, however, the use was limited to writing (some) test and documentation. The
+Artificial intelligence was USED during the development of the library, however, the use was limited to writing (some) tests and documentation. The
 latter was checked by the authors.

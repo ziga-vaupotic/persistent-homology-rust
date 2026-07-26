@@ -1,5 +1,5 @@
 use crate::construction::{Construction, cliques};
-use crate::geometry::{seb, Euclidean, PointCloud};
+use crate::geometry::{Euclidean, PointCloud, seb};
 use crate::topology::Filtration;
 
 /// Construct a Čech complex from a point cloud.

@@ -1,4 +1,4 @@
-use nalgebra::{DMatrix, SVector, DVector};
+use nalgebra::{DMatrix, DVector, SVector};
 use rand::seq::SliceRandom;
 
 use crate::geometry::{Ball, Euclidean, Point, PointCloud};
@@ -44,7 +44,11 @@ where
 // NOTE should probably be using LinkedList instead of Vec
 // unfortunatelly rust LinkedLists do not support remove/insert operations (nightly versions only)
 // TODO consider a move to VecDeque (for P only)
-fn welzl_rec<const D: usize, M>(P: &mut [usize], B: &mut Vec<usize>, space: &PointCloud<D, M>) -> Ball<D>
+fn welzl_rec<const D: usize, M>(
+    P: &mut [usize],
+    B: &mut Vec<usize>,
+    space: &PointCloud<D, M>,
+) -> Ball<D>
 where
     M: Euclidean<D>,
 {
@@ -90,12 +94,13 @@ where
             Ball::new(o, r)
         }
         x if x == space.dim() + 1 => {
-            let points = boundary.iter().map(|&x| DVector::from_iterator(D, space.get(x).coords.iter().copied())).collect::<Vec<DVector<f64>>>();
+            let points = boundary
+                .iter()
+                .map(|&x| DVector::from_iterator(D, space.get(x).coords.iter().copied()))
+                .collect::<Vec<DVector<f64>>>();
             let (centre, radius) = circumsphere(&points);
-            
-            let centre_point = Point::new(
-            SVector::<f64, D>::from_iterator(centre.iter().copied())
-            );
+
+            let centre_point = Point::new(SVector::<f64, D>::from_iterator(centre.iter().copied()));
             Ball::new(centre_point, radius)
         }
         _ => on_affine_subspace(boundary, space),
@@ -124,9 +129,8 @@ where
 
     let transformed = basis.transpose() * &linear_parts;
 
-    let mut new_space_vectors: Vec<DVector<f64>> = (0..n)
-        .map(|i| transformed.column(i).into_owned())
-        .collect();
+    let mut new_space_vectors: Vec<DVector<f64>> =
+        (0..n).map(|i| transformed.column(i).into_owned()).collect();
 
     new_space_vectors.push(DVector::zeros(transformed.nrows()));
     // find center in subpace spanned by {Q(q_i - q_0)}_i
@@ -135,8 +139,9 @@ where
     // center = basis * center_new + q_0
     let center_in_original_space = &basis * &centre;
     Ball::new(
-        &Point::new(SVector::<f64, D>::from_iterator(center_in_original_space.iter().cloned()))
-            + q0,
+        &Point::new(SVector::<f64, D>::from_iterator(
+            center_in_original_space.iter().cloned(),
+        )) + q0,
         radius,
     )
 }
@@ -153,14 +158,11 @@ fn extend_to_basis(points: &DMatrix<f64>) -> DMatrix<f64> {
 
 // generalised formula from https://mathworld.wolfram.com/Circumsphere.html
 // https://en.wikipedia.org/wiki/Circumcircle
-fn circumsphere(boundary: &Vec<DVector<f64>>) -> (DVector<f64>, f64)
-{
+fn circumsphere(boundary: &[DVector<f64>]) -> (DVector<f64>, f64) {
     let dim = boundary.len() - 1;
     let n = dim + 1; // length of boundary
 
-    let norms: Vec<f64> = (0..n)
-        .map(|x| boundary[x].norm_squared())
-        .collect();
+    let norms: Vec<f64> = (0..n).map(|x| boundary[x].norm_squared()).collect();
 
     let mut c = DVector::<f64>::from_element(dim, 0.0);
 

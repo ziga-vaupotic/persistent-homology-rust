@@ -26,7 +26,11 @@ use crate::geometry::{Ball, Euclidean, Point, PointCloud};
 /// T. Larsson, L. Källberg, Fast and Robust Approximation of Smallest Enclosing Balls
 /// in Arbitrary Dimensions, 2013
 /// <https://doi.org/10.1111/cgf.12176>
-pub fn larsson<const D: usize, M>(points: &[usize], epsilon: f64, space: &PointCloud<D, M>) -> Ball<D>
+pub fn larsson<const D: usize, M>(
+    points: &[usize],
+    epsilon: f64,
+    space: &PointCloud<D, M>,
+) -> Ball<D>
 where
     M: Euclidean<D>,
 {
@@ -71,7 +75,11 @@ where
     }
 }
 
-fn farthest_point<const D: usize, M>(p: &Point<D>, P: &[Point<D>], space: &PointCloud<D, M>) -> (Point<D>, f64)
+fn farthest_point<const D: usize, M>(
+    p: &Point<D>,
+    P: &[Point<D>],
+    space: &PointCloud<D, M>,
+) -> (Point<D>, f64)
 where
     M: Euclidean<D>,
 {
@@ -87,7 +95,11 @@ where
     (farthest_point, max_distance)
 }
 
-fn farthest_point_space<const D: usize, M>(p: &Point<D>, P: &[usize], space: &PointCloud<D, M>) -> (Point<D>, f64)
+fn farthest_point_space<const D: usize, M>(
+    p: &Point<D>,
+    P: &[usize],
+    space: &PointCloud<D, M>,
+) -> (Point<D>, f64)
 where
     M: Euclidean<D>,
 {

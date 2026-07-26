@@ -1,13 +1,15 @@
+use nalgebra::SVector;
 use persistent_homology::construction::{cech_exact, vietoris_rips};
 use persistent_homology::geometry::{EuclideanInnerProduct, Point, PointCloud};
-use nalgebra::SVector;
 
 use std::f64::consts::PI;
 
 #[test]
 fn single_point() {
     let space = PointCloud::new(
-        vec![Point::<3>::new(SVector::<f64, 3>::from_row_slice(&[0.0, 0.0, 0.0]))],
+        vec![Point::<3>::new(SVector::<f64, 3>::from_row_slice(&[
+            0.0, 0.0, 0.0,
+        ]))],
         EuclideanInnerProduct,
     )
     .unwrap();
@@ -84,8 +86,7 @@ fn grid_2_dim() {
     for i in 0..n {
         for j in 0..n {
             point_set.push(Point::<2>::new(SVector::<f64, 2>::from_row_slice(&[
-                i as f64,
-                j as f64,
+                i as f64, j as f64,
             ])));
         }
     }
@@ -114,9 +115,7 @@ fn grid_3_dim() {
         for j in 0..n {
             for k in 0..n {
                 point_set.push(Point::<3>::new(SVector::<f64, 3>::from_row_slice(&[
-                    i as f64,
-                    j as f64,
-                    k as f64,
+                    i as f64, j as f64, k as f64,
                 ])));
             }
         }

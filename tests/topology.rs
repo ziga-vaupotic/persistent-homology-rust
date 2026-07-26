@@ -1,6 +1,6 @@
+use nalgebra::SVector;
 use persistent_homology::construction::vietoris_rips;
 use persistent_homology::geometry::{EuclideanInnerProduct, Point, PointCloud};
-use nalgebra::SVector;
 
 #[test]
 fn test_filtration_is_sorted() {
@@ -28,7 +28,7 @@ fn test_simple_persistence_example() {
     // Two points close together, one far away
     let points = vec![
         Point::<2>::new(SVector::<f64, 2>::from_row_slice(&[0.0, 0.0])),
-        Point::<2>::new(SVector::<f64, 2>::from_row_slice(&[0.1, 0.0])),  // close to first
+        Point::<2>::new(SVector::<f64, 2>::from_row_slice(&[0.1, 0.0])), // close to first
         Point::<2>::new(SVector::<f64, 2>::from_row_slice(&[10.0, 0.0])), // far away
     ];
 

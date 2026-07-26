@@ -12,7 +12,12 @@ pub struct Point<const D: usize> {
 }
 
 impl<const D: usize> Point<D> {
-    /// Create a new point from a coordinate vector.
+    /// Initialize a point
+    ///
+    /// # Arguments
+    ///
+    /// * `D` - dimension.
+    /// * `coords` - list of coordinates.
     pub fn new(coords: impl Into<SVector<f64, D>>) -> Self {
         Self {
             coords: coords.into(),
@@ -36,7 +41,7 @@ impl<const D: usize> Point<D> {
 
     /// Scale the point by a scalar multiplier.
     pub fn multiply(&mut self, lambda: f64) {
-        self.coords = lambda * self.coords.clone();
+        self.coords = lambda * self.coords;
     }
 
     /// Construct a standard basis vector in the given dimension.
@@ -74,7 +79,7 @@ impl<const D: usize> Sub<&Point<D>> for &Point<D> {
 
 /// A collection of points with an associated metric or inner product space.
 ///
-/// `PointCloud` enforces consistent point dimension and underlying geometry
+/// `PointCloud` enforces consistent point dimension D and underlying geometry
 /// via traits such as `Metric` and `InnerProduct`.
 pub struct PointCloud<const D: usize, M> {
     // over R^n
@@ -87,9 +92,13 @@ impl<const D: usize, M> PointCloud<D, M>
 where
     M: Copy,
 {
-    /// Create a point cloud with the given geometry.
+    /// Initialize a point cloud over given topology
     ///
-    /// Returns an error when the input points do not all share the same coordinate dimension.
+    /// # Arguments
+    ///
+    /// * `D` - dimension.
+    /// * `M` - topology.
+    /// * `points` - list of points.
     pub fn new(points: Vec<Point<D>>, geometry: M) -> Result<Self, String> {
         if points.is_empty() {
             return Ok(Self {

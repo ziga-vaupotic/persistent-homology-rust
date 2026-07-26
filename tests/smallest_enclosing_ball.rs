@@ -1,5 +1,5 @@
-use persistent_homology::geometry::{EuclideanInnerProduct, Point, PointCloud, seb::*};
 use nalgebra::SVector;
+use persistent_homology::geometry::{EuclideanInnerProduct, Point, PointCloud, seb::*};
 
 use std::f64::consts::PI;
 
@@ -50,7 +50,8 @@ fn in_3_plus_dimensions() {
     for dim in 3..=max_dim {
         macro_rules! run_dim {
             ($d:literal) => {{
-                let point_set: Vec<Point<$d>> = (0..$d).map(|i| Point::<$d>::standard_unit(i)).collect();
+                let point_set: Vec<Point<$d>> =
+                    (0..$d).map(|i| Point::<$d>::standard_unit(i)).collect();
                 let space = PointCloud::new(point_set, EuclideanInnerProduct).unwrap();
 
                 for i in 1..=$d {

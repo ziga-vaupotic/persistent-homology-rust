@@ -14,6 +14,6 @@ fn main() {
 
     let filtration = cech(&pointset, Some(0.5), Some(2), 1e-6);
 
-    //let path_filtration = format!("examples/data/{}_filtration.csv", path_name);
-    //export_filtration_csv(&path_filtration, &filtration).expect("Failed to export filtration!");
+    let path_filtration = format!("examples/data/{}_filtration.csv", path_name);
+    export_filtration_csv(&path_filtration, &filtration).expect("Failed to export filtration!");
 }
