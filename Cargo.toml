@@ -3,6 +3,9 @@ name = "persistent-homology-rust"
 version = "0.1.0"
 edition = "2024"
 
+description = "A Rust library for computing persistent homology."
+license = "MIT"
+
 [lib]
 name = "persistent_homology"
 path = "src/lib.rs"
