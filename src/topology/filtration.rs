@@ -43,7 +43,7 @@ impl Filtration {
     }
 
     /// Return the simplices of dim of largest simplical complex.
-    /// 
+    ///
     /// # Arguments
     ///
     /// * `dim` - dimension of simplical complex.
@@ -60,7 +60,7 @@ impl Filtration {
 
     /// Return the simplicial complex consisting of all simplices with filtration
     /// value less than or equal to `epsilon`.
-    /// 
+    ///
     /// # Arguments
     ///
     /// * `epsilon` - 'epsilon' of simplical complex.

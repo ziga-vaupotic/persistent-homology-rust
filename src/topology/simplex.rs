@@ -41,7 +41,7 @@ impl Hash for Simplex {
 
 impl Simplex {
     /// Create a new simplex with vertex indices.
-    /// 
+    ///
     /// # Arguments
     ///
     /// * `vertices` - a list of vertex indices.
