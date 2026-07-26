@@ -21,9 +21,6 @@ homepage = "https://github.com/ziga-vaupotic/persistent-homology-rust"
 name = "persistent_homology"
 path = "src/lib.rs"
 
-[profile.release]
-debug = true
-
 [dependencies]
 itertools = "0.15"
 rand = "0.10.2"

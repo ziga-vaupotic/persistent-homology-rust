@@ -187,7 +187,8 @@ fn circumsphere(boundary: &Vec<DVector<f64>>) -> (DVector<f64>, f64)
     });
     let a = 1.0 / (2.0 * A.determinant());
 
-    let radius: f64 = (&c - &boundary[0]).norm();
+    let center = c * a;
+    let radius: f64 = (&center - &boundary[0]).norm();
 
-   (c * a, radius)
+    (center, radius)
 }
