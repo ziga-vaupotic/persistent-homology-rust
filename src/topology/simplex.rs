@@ -51,6 +51,10 @@ impl Simplex {
     }
 }
 
+pub struct SimplicialComplex {
+    pub simplices: Vec<Simplex>,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

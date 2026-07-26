@@ -9,8 +9,12 @@ impl Filtration {
         Self { simplices }
     }
 
-    pub fn size(&self) -> usize {
+    pub fn len(&self) -> usize {
         self.simplices.len()
+    }
+
+    pub fn is_empty(&self) -> bool {
+        self.simplices.len() == 0
     }
 
     pub fn max_dim(&self) -> usize {
@@ -37,7 +41,7 @@ impl Filtration {
     }
 
     // Instead of copying elements we could also get only a vector of references to simplices!
-    pub fn get_simplicial_complex(&self, epsilon: f64) -> SimplicialComplex {
+    pub fn complex_at(&self, epsilon: f64) -> SimplicialComplex {
         SimplicialComplex {
             simplices: self
                 .simplices

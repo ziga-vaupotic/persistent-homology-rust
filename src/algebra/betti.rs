@@ -1,9 +1,0 @@
-use crate::algebra::persistence::PersistenceDiagram;
-
-pub fn betti_at(diagram: &PersistenceDiagram, epsilon: usize) -> usize {
-    diagram
-        .pairs
-        .iter()
-        .filter(|pair| pair.birth <= epsilon && pair.death.is_none_or(|death| epsilon < death))
-        .count()
-}

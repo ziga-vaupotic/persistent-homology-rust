@@ -11,6 +11,15 @@ pub struct PersistenceDiagram {
     pub pairs: Vec<PersistencePair>,
 }
 
+impl PersistenceDiagram {
+    pub fn betti_at(&self, epsilon: usize) -> usize {
+        self.pairs
+            .iter()
+            .filter(|pair| pair.birth <= epsilon && pair.death.is_none_or(|death| epsilon < death))
+            .count()
+    }
+}
+
 pub fn compute_persistence(
     matrix: &ReducedBoundaryMatrix,
     dimension: usize,

@@ -10,10 +10,10 @@ fn single_point() {
     let rips_filtration = vietoris_rips(&space, None, None);
     let cech_filtration = cech_exact(&space, None, None);
 
-    assert!(rips_filtration.size() == 1);
+    assert!(rips_filtration.len() == 1);
     assert!(rips_filtration.simplices[0].filtration_value == 0.0);
 
-    assert!(cech_filtration.size() == 1);
+    assert!(cech_filtration.len() == 1);
     assert!(cech_filtration.simplices[0].filtration_value == 0.0);
 }
 
@@ -30,10 +30,10 @@ fn triangle() {
     let rips_filtration = vietoris_rips(&space, None, None);
     let cech_filtration = cech_exact(&space, None, None);
 
-    assert!(rips_filtration.size() == 7);
+    assert!(rips_filtration.len() == 7);
     assert!(rips_filtration.max_dim() == 2);
 
-    assert!(cech_filtration.size() == 7);
+    assert!(cech_filtration.len() == 7);
     assert!(cech_filtration.max_dim() == 2);
 
     for dim in 0..=2 {

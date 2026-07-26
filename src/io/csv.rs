@@ -6,7 +6,7 @@ use crate::topology::Filtration;
 
 use csv;
 
-pub fn import_point_set_csv<const D: usize, M>(
+pub fn import_point_cloud_csv<const D: usize, M>(
     path: &Path,
     geometry: M,
 ) -> Result<PointCloud<M>, Box<dyn Error>>

@@ -24,22 +24,25 @@ where
 // NOTE should probably be using LinkedList instead of Vec
 // unfortunatelly rust LinkedLists do not support remove/insert operations (nightly versions only)
 // TODO consider a move to VecDeque (for P only)
-fn welzl_rec<M>(P: &mut Vec<usize>, B: &mut Vec<usize>, space: &PointCloud<M>) -> Ball
+fn welzl_rec<M>(P: &mut [usize], B: &mut Vec<usize>, space: &PointCloud<M>) -> Ball
 where
     M: Euclidean,
 {
-    let mut miniball = from_boundary(&B, space);
+    let mut miniball = from_boundary(B, space);
+
     if P.is_empty() || B.len() == space.dim() + 1 {
         return miniball;
     }
 
     let n = P.len();
     for i in 0..n {
-        if space.contained_in_ball(&miniball, space.get(P[i])) {
+        let p = P[i];
+
+        if space.contained_in_ball(&miniball, space.get(p)) {
             continue;
         }
 
-        B.push(P[i]);
+        B.push(p);
         miniball = welzl_rec(&mut P[..i].to_vec(), B, space);
         B.pop();
 
@@ -48,10 +51,8 @@ where
     miniball
 }
 
-fn move_front(v: &mut Vec<usize>, x: usize) {
-    let u = v[x];
-    v.remove(x);
-    v.splice(..0, [u]);
+fn move_front(v: &mut [usize], i: usize) {
+    v[..=i].rotate_right(1);
 }
 
 fn from_boundary<M>(boundary: &[usize], space: &PointCloud<M>) -> Ball
@@ -103,7 +104,9 @@ where
         .collect();
     new_space_points.push(Point::new(vec![0.0; n]));
 
-    let new_space = PointCloud::new_no_check(new_space_points, space.get_geometry());
+    let new_space = PointCloud::new(new_space_points, space.get_geometry())
+        .expect("Failed to create a subspace PointCloud");
+
     let new_boundary: Vec<usize> = (0..(n + 1)).collect();
 
     // find center in subpace spanned by {Q(q_i - q_0)}_i

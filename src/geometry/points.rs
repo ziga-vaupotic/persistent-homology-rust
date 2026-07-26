@@ -26,38 +26,6 @@ impl Point {
         self.coords.iter().all(|x| x.abs() <= 1e-14)
     }
 
-    pub fn sum(points: &[Point]) -> Result<Point, String> {
-        if points.is_empty() {
-            return Err("no points given".into());
-        }
-        let dim = points[0].len();
-        if !points.iter().all(|x| x.len() == dim) {
-            return Err("inconsistent dimension".into());
-        }
-
-        let p = Point::new(Vec::new());
-        for i in 0..dim {
-            let mut s = 0.0;
-            points.iter().for_each(|x| s += x.coords[i]);
-            let _ = p.coords.push(s);
-        }
-        Ok(p)
-    }
-
-    pub fn sum_no_check(points: &[Point]) -> Point {
-        if points.is_empty() {
-            return Point::new(Vec::new());
-        }
-
-        let p = Point::new(Vec::new());
-        for i in 0..points[0].len() {
-            let mut s = 0.0;
-            points.iter().for_each(|x| s += x.coords[i]);
-            let _ = p.coords.push(s);
-        }
-        p
-    }
-
     pub fn multiply(&mut self, lambda: f64) {
         self.coords = lambda * self.coords.clone();
     }
@@ -119,22 +87,6 @@ where
             geometry,
             dim,
         })
-    }
-
-    pub fn new_no_check(points: Vec<Point>, geometry: M) -> Self {
-        if points.is_empty() {
-            return Self {
-                points,
-                geometry,
-                dim: 0,
-            };
-        }
-        let dim = points[0].coords.len();
-        Self {
-            points,
-            geometry,
-            dim,
-        }
     }
 
     pub fn len(&self) -> usize {

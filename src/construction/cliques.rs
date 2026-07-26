@@ -46,7 +46,7 @@ fn bron_kerbosch<M>(
     M: Metric,
 {
     if clique.len() > 2 {
-        match radius(&clique, space, cons) {
+        match radius(clique, space, cons) {
             Some(d) => cons.push(clique.clone(), d),
             None => return,
         }
