@@ -10,6 +10,10 @@ pub struct Filtration {
 
 impl Filtration {
     /// Create a new filtration from an ordered list of simplices.
+    ///
+    /// # Arguments
+    ///
+    /// * `simplices` - A list of (order) simplices.
     pub fn new(simplices: Vec<Simplex>) -> Self {
         Self { simplices }
     }
@@ -39,6 +43,10 @@ impl Filtration {
     }
 
     /// Return the simplices of dim of largest simplical complex.
+    /// 
+    /// # Arguments
+    ///
+    /// * `dim` - dimension of simplical complex.
     pub fn simplices_of_dim(&self, dim: usize) -> Vec<Simplex> {
         let mut simplices: Vec<Simplex> = Vec::new();
         for x in self.simplices.iter() {
@@ -52,6 +60,10 @@ impl Filtration {
 
     /// Return the simplicial complex consisting of all simplices with filtration
     /// value less than or equal to `epsilon`.
+    /// 
+    /// # Arguments
+    ///
+    /// * `epsilon` - 'epsilon' of simplical complex.
     pub fn complex_at(&self, epsilon: f64) -> SimplicialComplex {
         SimplicialComplex {
             simplices: self

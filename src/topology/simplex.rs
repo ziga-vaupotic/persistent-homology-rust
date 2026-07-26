@@ -40,7 +40,12 @@ impl Hash for Simplex {
 }
 
 impl Simplex {
-    /// Create a new simplex with sorted vertex indices.
+    /// Create a new simplex with vertex indices.
+    /// 
+    /// # Arguments
+    ///
+    /// * `vertices` - a list of vertex indices.
+    /// * `filtration_value` - filtration value of the simplex.
     pub fn new(vertices: Vec<usize>, filtration_value: f64) -> Self {
         let mut verts = vertices;
         verts.sort();
