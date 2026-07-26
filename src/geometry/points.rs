@@ -5,7 +5,7 @@ use std::ops::{Add, Sub};
 
 /// A point in an abstract Euclidean coordinate space.
 ///
-/// Coordinates are stored in a dynamic vector so points can live in arbitrary dimension.
+/// Coordinates are stored in a static vector of dimension D.
 #[derive(Clone)]
 pub struct Point<const D: usize> {
     pub coords: SVector<f64, D>,
@@ -79,7 +79,7 @@ impl<const D: usize> Sub<&Point<D>> for &Point<D> {
 
 /// A collection of points with an associated metric or inner product space.
 ///
-/// `PointCloud` enforces consistent point dimension D and underlying geometry
+/// `PointCloud` enforces consistent underlying geometry
 /// via traits such as `Metric` and `InnerProduct`.
 pub struct PointCloud<const D: usize, M> {
     // over R^n
