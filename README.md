@@ -1,5 +1,9 @@
 ## Persistent homology in Rust
-
+[![Rust](https://github.com/ziga-vaupotic/persistent-homology-rust/actions/workflows/rust.yml/badge.svg)](https://github.com/ziga-vaupotic/persistent-homology-rust/actions/workflows/rust.yml)
+[![codecov](https://codecov.io/gh/ziga-vaupotic/persistent-homology-rust/graph/badge.svg?token=E3KUJJEBBC)](https://codecov.io/gh/ziga-vaupotic/persistent-homology-rust)
+[![Crates.io](https://img.shields.io/crates/v/persistent-homology.svg)](https://crates.io/crates/persistent-homology)
+[![Documentation](https://docs.rs/persistent-homology/badge.svg)](https://docs.rs/persistent-homology)
+[![License](https://img.shields.io/crates/l/persistent-homology.svg)](LICENSE)
 
 ## Overview
 
