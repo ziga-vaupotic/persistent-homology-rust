@@ -1,4 +1,4 @@
-use nalgebra::DMatrix;
+use nalgebra::{DMatrix, SVector, DVector};
 use rand::seq::SliceRandom;
 
 use crate::geometry::{Ball, Euclidean, Point, PointCloud};
@@ -30,9 +30,9 @@ use crate::geometry::{Ball, Euclidean, Point, PointCloud};
 /// # Note
 ///
 /// For most practical purposes, consider using `larsson` for faster approximate computation.
-pub fn welzl<M>(points: &[usize], space: &PointCloud<M>) -> Ball
+pub fn welzl<const D: usize, M>(points: &[usize], space: &PointCloud<D, M>) -> Ball<D>
 where
-    M: Euclidean,
+    M: Euclidean<D>,
 {
     let mut P = points.to_owned();
     P.shuffle(&mut rand::rng());
@@ -44,9 +44,9 @@ where
 // NOTE should probably be using LinkedList instead of Vec
 // unfortunatelly rust LinkedLists do not support remove/insert operations (nightly versions only)
 // TODO consider a move to VecDeque (for P only)
-fn welzl_rec<M>(P: &mut [usize], B: &mut Vec<usize>, space: &PointCloud<M>) -> Ball
+fn welzl_rec<const D: usize, M>(P: &mut [usize], B: &mut Vec<usize>, space: &PointCloud<D, M>) -> Ball<D>
 where
-    M: Euclidean,
+    M: Euclidean<D>,
 {
     let mut miniball = from_boundary(B, space);
 
@@ -75,13 +75,13 @@ fn move_front(v: &mut [usize], i: usize) {
     v[..=i].rotate_right(1);
 }
 
-fn from_boundary<M>(boundary: &[usize], space: &PointCloud<M>) -> Ball
+fn from_boundary<const D: usize, M>(boundary: &[usize], space: &PointCloud<D, M>) -> Ball<D>
 // |boundary| <= dim + 1
 where
-    M: Euclidean,
+    M: Euclidean<D>,
 {
     match boundary.len() {
-        0 => Ball::new(Point::new(Vec::new()), 0.0),
+        0 => Ball::new(Point::new(SVector::<f64, D>::zeros()), 0.0),
         1 => Ball::new(space.get(boundary[0]).clone(), 0.0),
         2 => {
             let mut o = space.get(boundary[0]) + space.get(boundary[1]);
@@ -89,7 +89,15 @@ where
             let r = space.distance(&o, space.get(boundary[0]));
             Ball::new(o, r)
         }
-        x if x == space.dim() + 1 => circumsphere(boundary, space),
+        x if x == space.dim() + 1 => {
+            let points = boundary.iter().map(|&x| DVector::from_iterator(D, space.get(x).coords.iter().copied())).collect::<Vec<DVector<f64>>>();
+            let (centre, radius) = circumsphere(&points);
+            
+            let centre_point = Point::new(
+            SVector::<f64, D>::from_iterator(centre.iter().copied())
+            );
+            Ball::new(centre_point, radius)
+        }
         _ => on_affine_subspace(boundary, space),
     }
 }
@@ -99,10 +107,10 @@ where
 // find isometry to R^n subset R^d, where n is the dimension of that subspace
 // calculate miniball there then move the center back to original subspace
 // no need to change the radius as we have an isometry
-fn on_affine_subspace<M>(boundary: &[usize], space: &PointCloud<M>) -> Ball
+fn on_affine_subspace<const D: usize, M>(boundary: &[usize], space: &PointCloud<D, M>) -> Ball<D>
 // 2 < |boundary| < dim + 1
 where
-    M: Euclidean,
+    M: Euclidean<D>,
 {
     let q0 = space.get(boundary[0]);
     let dim = space.dim();
@@ -116,26 +124,21 @@ where
 
     let transformed = basis.transpose() * &linear_parts;
 
-    let mut new_space_points: Vec<Point> = (0..n)
-        .map(|i| {
-            let coords: Vec<f64> = (0..n).map(|j| transformed[(j, i)]).collect();
-            Point::new(coords)
-        })
+    let mut new_space_vectors: Vec<DVector<f64>> = (0..n)
+        .map(|i| transformed.column(i).into_owned())
         .collect();
-    new_space_points.push(Point::new(vec![0.0; n]));
 
-    let new_space = PointCloud::new(new_space_points, space.get_geometry())
-        .expect("Failed to create a subspace PointCloud");
-
-    let new_boundary: Vec<usize> = (0..(n + 1)).collect();
-
+    new_space_vectors.push(DVector::zeros(transformed.nrows()));
     // find center in subpace spanned by {Q(q_i - q_0)}_i
-    let miniball = circumsphere(&new_boundary, &new_space);
+    let (centre, radius) = circumsphere(&new_space_vectors);
 
     // center = basis * center_new + q_0
-    let center_new_vec = miniball.o().coords.clone();
-    let center_in_original_space = basis * center_new_vec;
-    Ball::new(&Point::new(center_in_original_space) + q0, miniball.radius)
+    let center_in_original_space = &basis * &centre;
+    Ball::new(
+        &Point::new(SVector::<f64, D>::from_iterator(center_in_original_space.iter().cloned()))
+            + q0,
+        radius,
+    )
 }
 
 fn extend_to_basis(points: &DMatrix<f64>) -> DMatrix<f64> {
@@ -150,18 +153,17 @@ fn extend_to_basis(points: &DMatrix<f64>) -> DMatrix<f64> {
 
 // generalised formula from https://mathworld.wolfram.com/Circumsphere.html
 // https://en.wikipedia.org/wiki/Circumcircle
-fn circumsphere<M>(boundary: &[usize], space: &PointCloud<M>) -> Ball
-where
-    M: Euclidean,
+fn circumsphere(boundary: &Vec<DVector<f64>>) -> (DVector<f64>, f64)
 {
-    let dim = space.dim();
+    let dim = boundary.len() - 1;
     let n = dim + 1; // length of boundary
 
     let norms: Vec<f64> = (0..n)
-        .map(|x| space.norm_squared(space.get(boundary[x])))
+        .map(|x| boundary[x].norm_squared())
         .collect();
 
-    let mut c: Vec<f64> = Vec::new();
+    let mut c = DVector::<f64>::from_element(dim, 0.0);
+
     for i in 0..dim {
         // D_x, D_y, ... in wolfram reference
         let M_i = DMatrix::from_fn(n, n, |row, col| match col {
@@ -169,26 +171,23 @@ where
             x if x == dim => 1.0,
             _ => {
                 if col < i + 1 {
-                    return space.get(boundary[row]).coords[col - 1];
+                    return boundary[row][col - 1];
                 }
-                space.get(boundary[row]).coords[col]
+                boundary[row][col]
             }
         });
-        c.push((-1.0_f64).powf(i as f64) * M_i.determinant());
+        c[i] = (-1.0_f64).powi(i as i32) * M_i.determinant();
     }
 
     let A = DMatrix::from_fn(n, n, |row, col| {
         if col == dim {
             return 1.0;
         }
-        space.get(boundary[row]).coords[col]
+        boundary[row][col]
     });
     let a = 1.0 / (2.0 * A.determinant());
 
-    let mut center = Point::new(c);
-    center.multiply(a);
+    let radius: f64 = (&c - &boundary[0]).norm();
 
-    let radius = space.distance(&center, space.get(boundary[0]));
-
-    Ball::new(center, radius)
+   (c * a, radius)
 }

@@ -60,8 +60,6 @@ use persistent_homology::algebra::discretisation::{
 };
 use persistent_homology::algebra::persistence::compute_persistence_diagram;
 use persistent_homology::construction::vietoris_rips;
-use persistent_homology::geometry::EuclideanInnerProduct;
-
 
 fn main() {
     // create point cloud over topology M

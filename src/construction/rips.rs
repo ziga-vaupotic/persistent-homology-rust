@@ -24,19 +24,23 @@ use itertools::Itertools;
 ///
 /// ```ignore
 /// use persistent_homology::construction::vietoris_rips;
+/// use nalgebra::SVector;
 /// use persistent_homology::geometry::{Point, PointCloud, EuclideanInnerProduct};
 ///
-/// let points = vec![Point::new(vec![0.0]), Point::new(vec![1.0])];
+/// let points = vec![
+///     Point::<1>::new(SVector::<f64, 1>::from_row_slice(&[0.0])),
+///     Point::<1>::new(SVector::<f64, 1>::from_row_slice(&[1.0])),
+/// ];
 /// let cloud = PointCloud::new(points, EuclideanInnerProduct).unwrap();
 /// let filtration = vietoris_rips(&cloud, Some(2.0), Some(2));
 /// ```
-pub fn vietoris_rips<M>(
-    space: &PointCloud<M>,
+pub fn vietoris_rips<const D: usize, M>(
+    space: &PointCloud<D, M>,
     max_epsilon: Option<f64>,
     max_dim: Option<usize>,
 ) -> Filtration
 where
-    M: Metric,
+    M: Metric<D>,
 {
     let max_epsilon = max_epsilon.unwrap_or(f64::MAX);
     let max_dim = max_dim.unwrap_or(usize::MAX - 1);
@@ -56,9 +60,13 @@ where
     Filtration::new(cons.simplices)
 }
 
-fn rips_radius<M>(clique: &[usize], _space: &PointCloud<M>, cons: &Construction) -> Option<f64>
+fn rips_radius<const D: usize, M>(
+    clique: &[usize],
+    _space: &PointCloud<D, M>,
+    cons: &Construction,
+) -> Option<f64>
 where
-    M: Metric,
+    M: Metric<D>,
 {
     let mut max_d = 0.0;
     for v in (0..clique.len()).combinations(2) {

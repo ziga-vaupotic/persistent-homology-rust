@@ -36,9 +36,14 @@ impl Construction {
     /// * `max_epsilon` - Maximum filtration value threshold.
     /// * `tolerance` - Tolerance for geometric computations.
     /// * `space` - The point cloud.
-    pub fn new<M>(max_dim: usize, max_epsilon: f64, tolerance: f64, space: &PointCloud<M>) -> Self
+    pub fn new<const D: usize, M>(
+        max_dim: usize,
+        max_epsilon: f64,
+        tolerance: f64,
+        space: &PointCloud<D, M>,
+    ) -> Self
     where
-        M: Metric,
+        M: Metric<D>,
     {
         let mut simplices: Vec<Simplex> = Vec::new();
         let mut adjacency: HashMap<usize, Vec<usize>> = HashMap::new();
@@ -89,14 +94,14 @@ impl Construction {
     ///
     /// This method maintains the adjacency lists in sorted order for compatibility
     /// with the clique enumeration algorithm.
-    pub fn traverse_edges<M>(
+    pub fn traverse_edges<const D: usize, M>(
         &mut self,
-        space: &PointCloud<M>,
+        space: &PointCloud<D, M>,
         factor: f64,
         save_distance: bool,
     ) -> bool
     where
-        M: Metric,
+        M: Metric<D>,
     {
         let n = space.len();
 

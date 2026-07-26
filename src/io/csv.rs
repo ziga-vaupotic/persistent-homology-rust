@@ -1,4 +1,5 @@
 use crate::geometry::{Point, PointCloud};
+use nalgebra::SVector;
 use std::{error::Error, fs::File, io::Write, path::Path};
 
 use crate::algebra::persistence::PersistenceDiagram;
@@ -33,7 +34,7 @@ use csv;
 pub fn import_point_cloud_csv<const D: usize, M>(
     path: &Path,
     geometry: M,
-) -> Result<PointCloud<M>, Box<dyn Error>>
+) -> Result<PointCloud<D, M>, Box<dyn Error>>
 where
     M: Copy,
 {
@@ -42,7 +43,7 @@ where
         .has_headers(false)
         .from_reader(file);
 
-    let mut points: Vec<Point> = Vec::new();
+    let mut points: Vec<Point<D>> = Vec::new();
 
     for result in rdr.records() {
         let record = result?;
@@ -57,7 +58,7 @@ where
             arr.push(v.parse::<f64>()?);
         }
 
-        points.push(Point::new(arr));
+        points.push(Point::new(SVector::<f64, D>::from_row_slice(&arr)));
     }
 
     Ok(PointCloud::new(points, geometry)?)
