@@ -1,17 +1,32 @@
+//! Persistence diagram computation for reduced boundary matrices.
+//!
+//! This module converts reduced boundary matrices into persistence diagram
+
 use crate::algebra::matrices::{ReducedBoundaryMatrices, ReducedBoundaryMatrix};
 use std::collections::HashSet;
 
+/// A single persistence interval in a given dimension.
+///
+/// `birth` and `death` are global filtration indices of the corresponding simplices.
+/// A `death` of `None` indicates the interval persists forever.
 pub struct PersistencePair {
     pub dimension: usize,
     pub birth: usize,
     pub death: Option<usize>,
 }
 
+/// A collection of persistence intervals.
+///
+/// The persistence diagram is stored as a vector of pairs, one for each finite or
+/// infinite homology class.
 pub struct PersistenceDiagram {
     pub pairs: Vec<PersistencePair>,
 }
 
 impl PersistenceDiagram {
+    /// Compute the Betti number at the given filtration index.
+    ///
+    /// This counts intervals that are born on or before `epsilon` and not yet died.
     pub fn betti_at(&self, epsilon: usize) -> usize {
         self.pairs
             .iter()
@@ -20,6 +35,10 @@ impl PersistenceDiagram {
     }
 }
 
+/// Compute persistence pairs for a single reduced boundary matrix.
+///
+/// The returned pairs represent finite intervals for each pivot and infinite
+/// intervals for zero columns that were never paired.
 pub fn compute_persistence(
     matrix: &ReducedBoundaryMatrix,
     dimension: usize,
@@ -64,6 +83,9 @@ pub fn compute_persistence(
     pairs
 }
 
+/// Compute a persistence diagram from reduced boundary matrices across all dimensions.
+///
+/// Each matrix contributes persistence intervals for its homology dimension.
 pub fn compute_persistence_diagram(matrices: &ReducedBoundaryMatrices) -> PersistenceDiagram {
     let mut pairs = Vec::new();
 

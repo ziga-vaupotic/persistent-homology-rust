@@ -1,14 +1,25 @@
+//! Sparse matrix representations of boundary operators and discretisation of boundary operator.
+//!
+//! Boundary matrices are stored in column-sparse form over `\mathbb{Z}_2`, and reduction
+//! computes pivots for the persistence algorithm.
+
 use std::collections::HashMap;
 
-// The boundary matrix is an element of GF(2)
-// Currently the columns act as a a way to stor 1s
-// E.g. [1,2, 3] means that in column id. 1 there are
-// 1s at position 1 2 and 3.
-
+/// A boundary matrix in sparse column form.
+///
+/// Each column stores the sorted list of row indices where the matrix has `1` entries.
+/// The `column_indices` vector maps each column back to the global filtration index of
+/// the corresponding simplex.
 pub struct BoundaryMatrix {
     pub columns: Vec<Vec<usize>>,
     pub column_indices: Vec<usize>, // global filtration indices
 }
+
+/// A reduced boundary matrix with pivot (low) indices computed.
+///
+/// The reduced matrix is represented by a `BoundaryMatrix` and a `low` vector, where
+/// `low[j]` is the largest row index present in the reduced column `j`, or `None` if the
+/// column is zero.
 pub struct ReducedBoundaryMatrix {
     pub matrix: BoundaryMatrix,
     pub low: Vec<Option<usize>>,

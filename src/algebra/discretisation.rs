@@ -1,12 +1,19 @@
+//! Discretises filtration simplices into algebraic boundary matrices.
+//!
+//! Each simplex boundary is converted into a sparse column representation of a
+//! boundary operator over `\mathbb{Z}_2`.
+
 use crate::topology::{Filtration, Simplex};
 
 use crate::algebra::matrices::{BoundaryMatrices, BoundaryMatrix, ReducedBoundaryMatrices};
 
 use std::collections::HashMap;
 
-// A chain complex induces a family of boundary operators \partial_j: C_j \to C_{j-1}
-// We discretise them each one of them with a boundary matrix.
-
+/// Build the boundary matrices for a filtration.
+///
+/// Each returned `BoundaryMatrix` corresponds to a dimension `d` and contains columns
+/// representing the boundary of each `d`-simplex. The `column_indices` preserve the
+/// original global filtration order of simplices.
 pub fn build_boundary_matrices(filtration: &Filtration) -> BoundaryMatrices {
     let mut by_dim: Vec<Vec<&Simplex>> = Vec::new();
 
@@ -60,6 +67,10 @@ pub fn build_boundary_matrices(filtration: &Filtration) -> BoundaryMatrices {
     matrices
 }
 
+/// Reduce each boundary matrix to its canonical `\mathbb{Z}_2` persistence form.
+///
+/// The reduction uses the standard persistence convention, where the pivot (low) entry
+/// of each nonzero column is the largest row index present in that column.
 pub fn reduce_boundary_matrices(matrices: &BoundaryMatrices) -> ReducedBoundaryMatrices {
     matrices.iter().map(|matrix| matrix.reduce()).collect()
 }

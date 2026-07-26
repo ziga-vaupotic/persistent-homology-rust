@@ -1,4 +1,8 @@
 #[derive(Debug, Clone)]
+/// A simplex in an abstract simplicial complex.
+///
+/// The simplex stores its vertex indices and a filtration value used to determine
+/// the ordering in a filtration.
 pub struct Simplex {
     pub vertices: Vec<usize>,
     pub filtration_value: f64, // this can be implemented as a trait instead later on!
@@ -22,6 +26,7 @@ impl Hash for Simplex {
 }
 
 impl Simplex {
+    /// Create a new simplex with sorted vertex indices.
     pub fn new(vertices: Vec<usize>, filtration_value: f64) -> Self {
         let mut verts = vertices;
         verts.sort();
@@ -31,10 +36,15 @@ impl Simplex {
         }
     }
 
+    /// Return the topological dimension of the simplex.
     pub fn dim(&self) -> usize {
         self.vertices.len() - 1
     }
 
+    /// Compute the oriented boundary of the simplex.
+    ///
+    /// Returns pairs `(coefficient, face)` where coefficient is `1` or `-1`
+    /// coming from the alternating boundary formula.
     pub fn boundary(&self) -> Vec<(i32, Simplex)> {
         let mut result = Vec::new();
         let n = self.vertices.len();
@@ -51,6 +61,7 @@ impl Simplex {
     }
 }
 
+/// Abstract simplical complex made of simplexes
 pub struct SimplicialComplex {
     pub simplices: Vec<Simplex>,
 }
