@@ -80,31 +80,7 @@ impl BoundaryMatrix {
                 if let Some(&owner) = pivot_owner.get(&pivot_row) {
                     let owner_col = &matrix[owner];
 
-                    // Z2 symmetric difference
-                    let mut new_col = Vec::new();
-                    let (mut a, mut b) = (0, 0);
-
-                    while a < col.len() && b < owner_col.len() {
-                        match col[a].cmp(&owner_col[b]) {
-                            std::cmp::Ordering::Less => {
-                                new_col.push(col[a]);
-                                a += 1;
-                            }
-                            std::cmp::Ordering::Greater => {
-                                new_col.push(owner_col[b]);
-                                b += 1;
-                            }
-                            std::cmp::Ordering::Equal => {
-                                a += 1;
-                                b += 1;
-                            }
-                        }
-                    }
-
-                    new_col.extend_from_slice(&col[a..]);
-                    new_col.extend_from_slice(&owner_col[b..]);
-
-                    col = new_col;
+                    col = symmetric_difference(&col, owner_col);
                 } else {
                     low[j] = Some(pivot_row);
                     pivot_owner.insert(pivot_row, j);
@@ -148,6 +124,34 @@ impl BoundaryMatrix {
 }
 pub type BoundaryMatrices = Vec<BoundaryMatrix>;
 pub type ReducedBoundaryMatrices = Vec<ReducedBoundaryMatrix>;
+
+// Z2 symmetric difference
+fn symmetric_difference(a: &[usize], b: &[usize]) -> Vec<usize> {
+    let mut result = Vec::with_capacity(a.len() + b.len());
+    let (mut i, mut j) = (0, 0);
+
+    while i < a.len() && j < b.len() {
+        match a[i].cmp(&b[j]) {
+            std::cmp::Ordering::Less => {
+                result.push(a[i]);
+                i += 1;
+            }
+            std::cmp::Ordering::Greater => {
+                result.push(b[j]);
+                j += 1;
+            }
+            std::cmp::Ordering::Equal => {
+                i += 1;
+                j += 1;
+            }
+        }
+    }
+
+    result.extend_from_slice(&a[i..]);
+    result.extend_from_slice(&b[j..]);
+
+    result
+}
 
 #[cfg(test)]
 mod tests {

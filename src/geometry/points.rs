@@ -1,18 +1,24 @@
-use nalgebra::DVector;
+use nalgebra::SVector;
 
 use crate::geometry::{Ball, Metric, Norm};
+use std::ops::{Add, Sub};
 
 /// A point in an abstract Euclidean coordinate space.
 ///
 /// Coordinates are stored in a dynamic vector so points can live in arbitrary dimension.
 #[derive(Clone)]
-pub struct Point {
-    pub coords: DVector<f64>,
+pub struct Point<const D: usize> {
+    pub coords: SVector<f64, D>,
 }
 
-impl Point {
-    /// Create a new point from a coordinate vector.
-    pub fn new(coords: impl Into<DVector<f64>>) -> Self {
+impl<const D: usize> Point<D> {
+    /// Initialize a point
+    ///
+    /// # Arguments
+    ///
+    /// * `D` - dimension.
+    /// * `coords` - list of coordinates.
+    pub fn new(coords: impl Into<SVector<f64, D>>) -> Self {
         Self {
             coords: coords.into(),
         }
@@ -35,56 +41,65 @@ impl Point {
 
     /// Scale the point by a scalar multiplier.
     pub fn multiply(&mut self, lambda: f64) {
-        self.coords = lambda * self.coords.clone();
+        self.coords = lambda * self.coords;
     }
 
     /// Construct a standard basis vector in the given dimension.
-    pub fn standard_unit(i: usize, dim: usize) -> Self {
-        let mut coords = vec![0.0; dim];
+    pub fn standard_unit(i: usize) -> Self {
+        assert!(i < D);
+
+        let mut coords = SVector::<f64, D>::zeros();
         coords[i] = 1.0;
+
         Point::new(coords)
     }
 }
 
-impl std::ops::Add<&Point> for &Point {
-    type Output = Point;
+impl<const D: usize> Add<&Point<D>> for &Point<D> {
+    type Output = Point<D>;
 
-    fn add(self, right: &Point) -> Point {
-        let mut sum = Point::new(Vec::new());
-        sum.coords = &self.coords + &right.coords;
-        sum
+    #[inline]
+    fn add(self, rhs: &Point<D>) -> Point<D> {
+        Point {
+            coords: self.coords + rhs.coords,
+        }
     }
 }
 
-impl std::ops::Sub<&Point> for &Point {
-    type Output = Point;
+impl<const D: usize> Sub<&Point<D>> for &Point<D> {
+    type Output = Point<D>;
 
-    fn sub(self, right: &Point) -> Point {
-        let mut diff = Point::new(Vec::new());
-        diff.coords = &self.coords - &right.coords;
-        diff
+    #[inline]
+    fn sub(self, rhs: &Point<D>) -> Point<D> {
+        Point {
+            coords: self.coords - rhs.coords,
+        }
     }
 }
 
 /// A collection of points with an associated metric or inner product space.
 ///
-/// `PointCloud` enforces consistent point dimension and underlying geometry
+/// `PointCloud` enforces consistent point dimension D and underlying geometry
 /// via traits such as `Metric` and `InnerProduct`.
-pub struct PointCloud<M> {
+pub struct PointCloud<const D: usize, M> {
     // over R^n
-    points: Vec<Point>,
+    points: Vec<Point<D>>,
     geometry: M, // Metric space e.g.
     dim: usize,  // This is added as an enforcement of consistency in a nodeset
 }
 
-impl<M> PointCloud<M>
+impl<const D: usize, M> PointCloud<D, M>
 where
     M: Copy,
 {
-    /// Create a point cloud with the given geometry.
+    /// Initialize a point cloud over given topology
     ///
-    /// Returns an error when the input points do not all share the same coordinate dimension.
-    pub fn new(points: Vec<Point>, geometry: M) -> Result<Self, String> {
+    /// # Arguments
+    ///
+    /// * `D` - dimension.
+    /// * `M` - topology.
+    /// * `points` - list of points.
+    pub fn new(points: Vec<Point<D>>, geometry: M) -> Result<Self, String> {
         if points.is_empty() {
             return Ok(Self {
                 points,
@@ -121,7 +136,7 @@ where
     }
 
     /// Get a reference to the point at the given index.
-    pub fn get(&self, i: usize) -> &Point {
+    pub fn get(&self, i: usize) -> &Point<D> {
         &self.points[i]
     }
 
@@ -131,17 +146,17 @@ where
     }
 }
 
-impl<M> PointCloud<M>
+impl<const D: usize, M> PointCloud<D, M>
 where
-    M: Metric,
+    M: Metric<D>,
 {
     /// Compute the metric distance between two points.
-    pub fn distance(&self, a: &Point, b: &Point) -> f64 {
+    pub fn distance(&self, a: &Point<D>, b: &Point<D>) -> f64 {
         self.geometry.distance(a, b)
     }
 
     /// Check whether a point lies inside a closed ball.
-    pub fn contained_in_ball(&self, ball: &Ball, point: &Point) -> bool {
+    pub fn contained_in_ball(&self, ball: &Ball<D>, point: &Point<D>) -> bool {
         if ball.o().is_empty() {
             return false;
         }
@@ -149,17 +164,17 @@ where
     }
 }
 
-impl<M> PointCloud<M>
+impl<const D: usize, M> PointCloud<D, M>
 where
-    M: Norm,
+    M: Norm<D>,
 {
     /// Compute the squared norm of a point under the inner product.
-    pub fn norm_squared(&self, a: &Point) -> f64 {
+    pub fn norm_squared(&self, a: &Point<D>) -> f64 {
         self.geometry.norm(a) * self.geometry.norm(a)
     }
 
     /// Compute the Euclidean norm of a point under the inner product.
-    pub fn norm(&self, a: &Point) -> f64 {
+    pub fn norm(&self, a: &Point<D>) -> f64 {
         self.geometry.norm(a)
     }
 }

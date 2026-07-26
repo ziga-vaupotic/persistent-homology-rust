@@ -14,7 +14,8 @@ impl Filtration {
     /// # Arguments
     ///
     /// * `simplices` - A list of (order) simplices.
-    pub fn new(simplices: Vec<Simplex>) -> Self {
+    pub fn new(mut simplices: Vec<Simplex>) -> Self {
+        Self::sort_simplices(&mut simplices);
         Self { simplices }
     }
 
@@ -40,6 +41,26 @@ impl Filtration {
             .max_by(|x, y| x.filtration_value.partial_cmp(&y.filtration_value).unwrap())
             .unwrap()
             .filtration_value
+    }
+
+    // Sort filtration, without return value.
+    pub fn sort(&mut self) {
+        Self::sort_simplices(&mut self.simplices);
+    }
+
+    // Sort a list of simplices based on filtration value
+    ///
+    /// # Arguments
+    ///
+    /// * `simplices` - list of a mutable simplices.
+    fn sort_simplices(simplices: &mut [Simplex]) {
+        simplices.sort_by(|a, b| {
+            a.filtration_value
+                .partial_cmp(&b.filtration_value)
+                .unwrap()
+                .then(a.dim().cmp(&b.dim()))
+                .then(a.vertices.cmp(&b.vertices))
+        });
     }
 
     /// Return the simplices of dim of largest simplical complex.

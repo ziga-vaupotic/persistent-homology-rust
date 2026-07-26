@@ -79,7 +79,7 @@ def plot(points, simplices_pts, edges, triangles):
 
 if __name__ == "__main__":
 
-    type = "circle"
+    type = "figure_eight"
 
     root_dir = Path(__file__).resolve().parent.parent.parent
     simplices = load_filtration(root_dir / f'examples/data/{type}_filtration.csv')

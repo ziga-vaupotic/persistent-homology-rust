@@ -36,9 +36,14 @@ impl Construction {
     /// * `max_epsilon` - Maximum filtration value threshold.
     /// * `tolerance` - Tolerance for geometric computations.
     /// * `space` - The point cloud.
-    pub fn new<M>(max_dim: usize, max_epsilon: f64, tolerance: f64, space: &PointCloud<M>) -> Self
+    pub fn new<const D: usize, M>(
+        max_dim: usize,
+        max_epsilon: f64,
+        tolerance: f64,
+        space: &PointCloud<D, M>,
+    ) -> Self
     where
-        M: Metric,
+        M: Metric<D>,
     {
         let mut simplices: Vec<Simplex> = Vec::new();
         let mut adjacency: HashMap<usize, Vec<usize>> = HashMap::new();
@@ -89,14 +94,14 @@ impl Construction {
     ///
     /// This method maintains the adjacency lists in sorted order for compatibility
     /// with the clique enumeration algorithm.
-    pub fn traverse_edges<M>(
+    pub fn traverse_edges<const D: usize, M>(
         &mut self,
-        space: &PointCloud<M>,
+        space: &PointCloud<D, M>,
         factor: f64,
         save_distance: bool,
     ) -> bool
     where
-        M: Metric,
+        M: Metric<D>,
     {
         let n = space.len();
 
@@ -120,20 +125,5 @@ impl Construction {
         }
         //adjacency[i] already ordered for all i as per property of combinations
         has_edges
-    }
-
-    /// Sort simplices by filtration value, dimension, and vertex indices.
-    ///
-    /// Arranges simplices in the order required for the persistence algorithm:
-    /// first by increasing filtration value, then by dimension, and finally by vertex indices.
-    /// This establishes a total order on simplices suitable for homology computation.
-    pub fn sort_simplices(&mut self) {
-        self.simplices.sort_by(|a, b| {
-            a.filtration_value
-                .partial_cmp(&b.filtration_value)
-                .unwrap()
-                .then(a.dim().cmp(&b.dim()))
-                .then(a.vertices.cmp(&b.vertices))
-        });
     }
 }

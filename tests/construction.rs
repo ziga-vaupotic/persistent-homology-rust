@@ -1,3 +1,4 @@
+use nalgebra::SVector;
 use persistent_homology::construction::{cech_exact, vietoris_rips};
 use persistent_homology::geometry::{EuclideanInnerProduct, Point, PointCloud};
 
@@ -5,7 +6,13 @@ use std::f64::consts::PI;
 
 #[test]
 fn single_point() {
-    let space = PointCloud::new(vec![Point::new(vec![0.0; 3])], EuclideanInnerProduct).unwrap();
+    let space = PointCloud::new(
+        vec![Point::<3>::new(SVector::<f64, 3>::from_row_slice(&[
+            0.0, 0.0, 0.0,
+        ]))],
+        EuclideanInnerProduct,
+    )
+    .unwrap();
 
     let rips_filtration = vietoris_rips(&space, None, None);
     let cech_filtration = cech_exact(&space, None, None);
@@ -20,10 +27,13 @@ fn single_point() {
 #[test]
 fn triangle() {
     let n = 3;
-    let mut point_set: Vec<Point> = Vec::new();
+    let mut point_set: Vec<Point<2>> = Vec::new();
     for i in 0..n {
         let phi = 2.0 * PI * i as f64 / n as f64;
-        point_set.push(Point::new(vec![phi.cos(), phi.sin()]));
+        point_set.push(Point::<2>::new(SVector::<f64, 2>::from_row_slice(&[
+            phi.cos(),
+            phi.sin(),
+        ])));
     }
     let space = PointCloud::new(point_set, EuclideanInnerProduct).unwrap();
 
@@ -72,10 +82,12 @@ fn triangle() {
 #[test]
 fn grid_2_dim() {
     let n = 3;
-    let mut point_set: Vec<Point> = Vec::new();
+    let mut point_set: Vec<Point<2>> = Vec::new();
     for i in 0..n {
         for j in 0..n {
-            point_set.push(Point::new(vec![i as f64, j as f64]));
+            point_set.push(Point::<2>::new(SVector::<f64, 2>::from_row_slice(&[
+                i as f64, j as f64,
+            ])));
         }
     }
     let space = PointCloud::new(point_set, EuclideanInnerProduct).unwrap();
@@ -98,11 +110,13 @@ fn grid_2_dim() {
 #[test]
 fn grid_3_dim() {
     let n = 3;
-    let mut point_set: Vec<Point> = Vec::new();
+    let mut point_set: Vec<Point<3>> = Vec::new();
     for i in 0..n {
         for j in 0..n {
             for k in 0..n {
-                point_set.push(Point::new(vec![i as f64, j as f64, k as f64]));
+                point_set.push(Point::<3>::new(SVector::<f64, 3>::from_row_slice(&[
+                    i as f64, j as f64, k as f64,
+                ])));
             }
         }
     }

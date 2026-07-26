@@ -111,7 +111,7 @@ def plot_complex(ax, points, edges, triangles, max_eps):
 
 if __name__ == '__main__':
 
-    type = "circle"
+    type = "figure_eight"
 
     root_dir = Path(__file__).resolve().parent.parent.parent
     filtration = load_filtration(root_dir / f'examples/data/{type}_filtration.csv')

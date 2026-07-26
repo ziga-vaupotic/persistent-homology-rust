@@ -23,20 +23,24 @@ use crate::topology::Filtration;
 ///
 /// ```ignore
 /// use persistent_homology::construction::cech;
+/// use nalgebra::SVector;
 /// use persistent_homology::geometry::{Point, PointCloud, EuclideanInnerProduct};
 ///
-/// let points = vec![Point::new(vec![0.0, 0.0]), Point::new(vec![1.0, 0.0])];
+/// let points = vec![
+///     Point::<2>::new(SVector::<f64, 2>::from_row_slice(&[0.0, 0.0])),
+///     Point::<2>::new(SVector::<f64, 2>::from_row_slice(&[1.0, 0.0])),
+/// ];
 /// let cloud = PointCloud::new(points, EuclideanInnerProduct).unwrap();
 /// let filtration = cech(&cloud, Some(2.0), Some(2), 0.0);
 /// ```
-pub fn cech<M>(
-    space: &PointCloud<M>,
+pub fn cech<const D: usize, M>(
+    space: &PointCloud<D, M>,
     max_epsilon: Option<f64>,
     max_dim: Option<usize>,
     radius_tolerance: f64,
 ) -> Filtration
 where
-    M: Euclidean,
+    M: Euclidean<D>,
 {
     let max_epsilon = max_epsilon.unwrap_or(f64::MAX / 2.0);
     let max_dim = max_dim.unwrap_or(usize::MAX - 1);
@@ -59,7 +63,6 @@ where
 
     cliques::find_all(space, in_ball, &mut cons);
 
-    cons.sort_simplices();
     Filtration::new(cons.simplices)
 }
 
@@ -67,20 +70,24 @@ where
 ///
 /// This is a convenience wrapper around `cech()` with `radius_tolerance = 0.0`.
 /// Use this for guaranteed accuracy, though it may be slower for large cliques.
-pub fn cech_exact<M>(
-    space: &PointCloud<M>,
+pub fn cech_exact<const D: usize, M>(
+    space: &PointCloud<D, M>,
     max_epsilon: Option<f64>,
     max_dim: Option<usize>,
 ) -> Filtration
 where
-    M: Euclidean,
+    M: Euclidean<D>,
 {
     cech(space, max_epsilon, max_dim, 0.0)
 }
 
-fn in_ball_approx<M>(clique: &[usize], space: &PointCloud<M>, cons: &Construction) -> Option<f64>
+fn in_ball_approx<const D: usize, M>(
+    clique: &[usize],
+    space: &PointCloud<D, M>,
+    cons: &Construction,
+) -> Option<f64>
 where
-    M: Euclidean,
+    M: Euclidean<D>,
 {
     let miniball = seb::larsson(clique, cons.tolerance, space);
     if miniball.r() > cons.max_epsilon {
@@ -90,9 +97,13 @@ where
 }
 
 // TODO change algorithm used based on dimesion and size of clique
-fn in_ball_exact<M>(clique: &[usize], space: &PointCloud<M>, cons: &Construction) -> Option<f64>
+fn in_ball_exact<const D: usize, M>(
+    clique: &[usize],
+    space: &PointCloud<D, M>,
+    cons: &Construction,
+) -> Option<f64>
 where
-    M: Euclidean,
+    M: Euclidean<D>,
 {
     let clique_vec = clique.to_vec();
     let miniball = seb::welzl(&clique_vec, space);

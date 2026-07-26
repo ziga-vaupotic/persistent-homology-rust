@@ -6,10 +6,20 @@ edition = "2024"
 description = "A Rust library for computing persistent homology."
 license = "MIT"
 
+repository = "https://github.com/ziga-vaupotic/persistent-homology-rust"
+readme = "README.md"
+keywords = ["topology", "persistent-homology", "tda", "mathematics"]
+categories = ["science", "mathematics"]
+
+# Optional but useful
+authors = ["Žiga Vaupotič <vaupotic.ziga@gmail.com>", "Maks Žnidaršič <maks.znidarsic@gmail.com>"]
+rust-version = "1.85"
+documentation = "https://docs.rs/persistent-homology"
+homepage = "https://github.com/ziga-vaupotic/persistent-homology-rust"
+
 [lib]
 name = "persistent_homology"
 path = "src/lib.rs"
-
 
 [dependencies]
 itertools = "0.15"

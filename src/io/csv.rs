@@ -1,4 +1,5 @@
 use crate::geometry::{Point, PointCloud};
+use nalgebra::SVector;
 use std::{error::Error, fs::File, io::Write, path::Path};
 
 use crate::algebra::persistence::PersistenceDiagram;
@@ -33,7 +34,7 @@ use csv;
 pub fn import_point_cloud_csv<const D: usize, M>(
     path: &Path,
     geometry: M,
-) -> Result<PointCloud<M>, Box<dyn Error>>
+) -> Result<PointCloud<D, M>, Box<dyn Error>>
 where
     M: Copy,
 {
@@ -42,7 +43,7 @@ where
         .has_headers(false)
         .from_reader(file);
 
-    let mut points: Vec<Point> = Vec::new();
+    let mut points: Vec<Point<D>> = Vec::new();
 
     for result in rdr.records() {
         let record = result?;
@@ -57,7 +58,7 @@ where
             arr.push(v.parse::<f64>()?);
         }
 
-        points.push(Point::new(arr));
+        points.push(Point::new(SVector::<f64, D>::from_row_slice(&arr)));
     }
 
     Ok(PointCloud::new(points, geometry)?)
@@ -79,8 +80,7 @@ where
 pub fn export_filtration_csv(path: &str, filtration: &Filtration) -> Result<(), Box<dyn Error>> {
     let mut file = File::create(path)?;
 
-    let mut simplices = filtration.simplices.clone();
-    simplices.sort_by(|a, b| a.filtration_value.partial_cmp(&b.filtration_value).unwrap());
+    let simplices = filtration.simplices.clone();
 
     for simplex in simplices {
         write!(file, "{}", simplex.filtration_value)?;
@@ -95,6 +95,18 @@ pub fn export_filtration_csv(path: &str, filtration: &Filtration) -> Result<(), 
     Ok(())
 }
 
+/// Export a persistence diagram to a CSV file.
+///
+/// Writes dimension of homological feature, birth and death
+///
+/// # Arguments
+///
+/// * `path` - Path where the CSV file will be written.
+/// * `persistence` - The Persistence diagram to export.
+///
+/// # Returns
+///
+/// `Ok(())` if successful, or an error if the file cannot be written.
 pub fn export_persistence_csv(
     path: &str,
     persistence: &PersistenceDiagram,
