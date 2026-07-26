@@ -18,14 +18,14 @@ This project was developed as part of the **Programiranje 2** course at the Facu
 
 
 ## Features
-The project currently supports topological data analysis over $(\R^d, d)$, where $d: \R^n \times \R^n \to \R$ is an arbitrary metric. The following core features are implemented:
+The project currently supports topological data analysis over $(\mathbb R^d, d)$, where $d: \mathbb R^n \times \mathbb R^n \to \mathbb R$ is an arbitrary metric. The following core features are implemented:
 
 - **Topology**: topological types and abstraction for persistence
     - Abstract simplex and simplicial complexes
     - Filtration over simplicial complexes
     - Abstraction for Metric, Normed, Inner-product and Euclidean spaces
 - **Geometry**:
-    - Points and point clouds in $(\R^n, d)$
+    - Points and point clouds in $(\mathbb R^n, d)$
     - Smallest enclosing balls for Euclidean spaces with several well-known algorithms
 - **Filtration**: computation of filtration over point clouds
     - Clique based algorithms for persistence based on Bron-Kerbosch algorithm
