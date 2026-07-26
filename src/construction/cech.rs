@@ -63,7 +63,6 @@ where
 
     cliques::find_all(space, in_ball, &mut cons);
 
-    cons.sort_simplices();
     Filtration::new(cons.simplices)
 }
 

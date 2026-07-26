@@ -56,7 +56,6 @@ where
 
     cliques::find_all(space, rips_radius, &mut cons);
 
-    cons.sort_simplices();
     Filtration::new(cons.simplices)
 }
 

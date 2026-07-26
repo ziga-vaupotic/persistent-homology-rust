@@ -126,19 +126,4 @@ impl Construction {
         //adjacency[i] already ordered for all i as per property of combinations
         has_edges
     }
-
-    /// Sort simplices by filtration value, dimension, and vertex indices.
-    ///
-    /// Arranges simplices in the order required for the persistence algorithm:
-    /// first by increasing filtration value, then by dimension, and finally by vertex indices.
-    /// This establishes a total order on simplices suitable for homology computation.
-    pub fn sort_simplices(&mut self) {
-        self.simplices.sort_by(|a, b| {
-            a.filtration_value
-                .partial_cmp(&b.filtration_value)
-                .unwrap()
-                .then(a.dim().cmp(&b.dim()))
-                .then(a.vertices.cmp(&b.vertices))
-        });
-    }
 }
