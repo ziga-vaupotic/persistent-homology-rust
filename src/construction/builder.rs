@@ -9,22 +9,31 @@ pub struct Construction {
     pub adjacency: HashMap<usize, Vec<usize>>, // adjacency[v] = N(v)
     pub distance: HashMap<(usize, usize), f64>,
 
-    pub max_dim: usize,
+    pub max_k: usize,
     pub max_epsilon: f64,
     pub tolerance: f64,
 }
 
 impl Construction {
-    pub fn new(max_dim: usize, max_epsilon: f64, tolerance: f64) -> Self {
-        let simplices: Vec<Simplex> = Vec::new();
-        let adjacency: HashMap<usize, Vec<usize>> = HashMap::new();
+    pub fn new<M>(max_dim: usize, max_epsilon: f64, tolerance: f64, space: &PointCloud<M>) -> Self
+    where
+        M: Metric,
+    {
+        let mut simplices: Vec<Simplex> = Vec::new();
+        let mut adjacency: HashMap<usize, Vec<usize>> = HashMap::new();
         let distance: HashMap<(usize, usize), f64> = HashMap::new();
+
+        let n = space.len();
+        (0..n).for_each(|x| simplices.push(Simplex::new(vec![x], 0.0))); // dim = 0
+        (0..n).for_each(|x| {
+            adjacency.insert(x, Vec::new());
+        });
 
         Self {
             simplices,
             adjacency,
             distance,
-            max_dim,
+            max_k: max_dim + 1,
             max_epsilon,
             tolerance,
         }
@@ -44,10 +53,6 @@ impl Construction {
         M: Metric,
     {
         let n = space.len();
-        (0..n).for_each(|x| self.push(vec![x], 0.0)); // dim = 0
-        (0..n).for_each(|x| {
-            self.adjacency.insert(x, Vec::new());
-        });
 
         let mut has_edges = false;
         for v in (0..n).combinations(2) {

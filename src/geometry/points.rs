@@ -42,7 +42,7 @@ impl std::ops::Add<&Point> for &Point {
 
     fn add(self, right: &Point) -> Point {
         let mut sum = Point::new(Vec::new());
-        sum.coords = self.coords.clone() + right.coords.clone();
+        sum.coords = &self.coords + &right.coords;
         sum
     }
 }
@@ -51,9 +51,9 @@ impl std::ops::Sub<&Point> for &Point {
     type Output = Point;
 
     fn sub(self, right: &Point) -> Point {
-        let mut sum = Point::new(Vec::new());
-        sum.coords = self.coords.clone() - right.coords.clone();
-        sum
+        let mut diff = Point::new(Vec::new());
+        diff.coords = &self.coords - &right.coords;
+        diff
     }
 }
 

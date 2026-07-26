@@ -15,7 +15,11 @@ where
     let max_dim = max_dim.unwrap_or(usize::MAX - 1);
     let radius_tolerance = radius_tolerance.abs();
 
-    let mut cons = Construction::new(max_dim, max_epsilon, radius_tolerance);
+    let mut cons = Construction::new(max_dim, max_epsilon, radius_tolerance, space);
+    if max_dim == 0 {
+        return Filtration::new(cons.simplices);
+    }
+
     if !cons.traverse_edges(space, 2.0, false) {
         return Filtration::new(cons.simplices);
     }

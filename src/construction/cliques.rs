@@ -52,7 +52,7 @@ fn bron_kerbosch<M>(
         }
     }
 
-    if clique.len() == cons.max_dim + 1
+    if clique.len() == cons.max_k
         || candidates.is_empty()
         || clique.len() + candidates.len() < 3
     {

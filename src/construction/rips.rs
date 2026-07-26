@@ -15,7 +15,11 @@ where
     let max_epsilon = max_epsilon.unwrap_or(f64::MAX);
     let max_dim = max_dim.unwrap_or(usize::MAX - 1);
 
-    let mut cons = Construction::new(max_dim, max_epsilon, 0.0);
+    let mut cons = Construction::new(max_dim, max_epsilon, 0.0, space);
+    if max_dim == 0 {
+        return Filtration::new(cons.simplices);
+    }
+
     if !cons.traverse_edges(space, 1.0, true) {
         return Filtration::new(cons.simplices);
     }
