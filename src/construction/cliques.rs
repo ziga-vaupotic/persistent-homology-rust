@@ -1,6 +1,27 @@
+//! Clique enumeration algorithms for complex construction.
+//!
+//! This module provides clique finding utilities using the Bron-Kerbosch algorithm
+//! to enumerate all maximal cliques in a graph defined by point distances.
+
 use crate::construction::Construction;
 use crate::geometry::{Metric, PointCloud};
 
+/// Find all cliques in the adjacency graph defined by the construction state.
+///
+/// This function uses the Bron-Kerbosch algorithm to enumerate all cliques and applies
+/// a user-provided radius function to determine which cliques should be added to the
+/// construction. The radius function receives a clique and should return either the
+/// filtration value for that clique or `None` if it should be rejected.
+///
+/// # Arguments
+///
+/// * `space` - The point cloud with associated metric.
+/// * `radius` - Callback function that evaluates whether a clique is valid and returns its filtration value.
+/// * `cons` - Mutable reference to the construction state that accumulates valid simplices.
+///
+/// # Complexity
+///
+/// $O(3^{n/3})$ in the worst case when enumerating all maximal cliques.
 pub fn find_all<M>(
     space: &PointCloud<M>,
     radius: fn(&[usize], &PointCloud<M>, &Construction) -> Option<f64>,
@@ -24,18 +45,33 @@ pub fn find_all<M>(
     )
 }
 
-// based on
-// C. Bron, J. Kerbosch, Finding All Cliques of an Undirected Graph, 1973
-// https://doi.org/10.1145/362342.362367
-// NOTE O(3^(n / 3)) when max_k = infinity
-// NOTE similar to the algorithm described in https://ieeexplore.ieee.org/document/1559964
-// TODO try https://arxiv.org/abs/2311.13798v2
-// NOTE another idea could be a maximal clique finding algorithm and after breaking down those maximal
-// cliques --- Tomita et al. https://doi.org/10.1016/j.tcs.2006.06.015 should be easy enough to implement
-// as it uses bron kerbosch as its base
-// instead of pivoting at max_(v in P union X) (N(v) intersection (P union X)) as the article
-// suggests is optimal a more practical approach might be to just find max_(v in P union X) |N(v)|
-// NOTE assuming candidates and adjacency[i] are already sorted
+/// Recursive Bron-Kerbosch algorithm for clique enumeration.
+///
+/// Implementation based on:
+/// C. Bron, J. Kerbosch, Finding All Cliques of an Undirected Graph, 1973
+/// https://doi.org/10.1145/362342.362367
+///
+/// # Arguments
+///
+/// * `clique` - Current clique being extended (initially empty).
+/// * `candidates` - Vertices that could extend the current clique.
+/// * `space` - The point cloud with associated metric.
+/// * `radius` - Callback to evaluate clique validity and filtration value.
+/// * `cons` - Mutable construction state.
+///
+/// # Assumptions
+///
+/// Assumes both `candidates` and adjacency lists are kept sorted for efficient intersection.
+///
+/// # Complexity
+///
+/// $O(3^{n/3})$ when max_k = infinity. Similar to the algorithm described in https://ieeexplore.ieee.org/document/1559964.
+///
+/// # TODO
+///
+/// - Implement degeneracy ordering as per https://arxiv.org/abs/1006.5440
+/// - Explore pivoting strategies from https://arxiv.org/abs/2311.13798v2
+/// - Consider maximal clique finding (Tomita et al.) as a preprocessing step
 fn bron_kerbosch<M>(
     clique: &mut Vec<usize>,
     candidates: Vec<usize>,
@@ -52,10 +88,7 @@ fn bron_kerbosch<M>(
         }
     }
 
-    if clique.len() == cons.max_k
-        || candidates.is_empty()
-        || clique.len() + candidates.len() < 3
-    {
+    if clique.len() == cons.max_k || candidates.is_empty() || clique.len() + candidates.len() < 3 {
         return;
     }
 
@@ -72,6 +105,23 @@ fn bron_kerbosch<M>(
     }
 }
 
+/// Compute the intersection of two sorted sequences.
+///
+/// Returns the set of elements that appear in both sequences.
+/// Both input sequences must be sorted in ascending order.
+///
+/// # Arguments
+///
+/// * `a` - First sorted sequence.
+/// * `b` - Second sorted sequence.
+///
+/// # Returns
+///
+/// A new sorted vector containing elements present in both `a` and `b`.
+///
+/// # Complexity
+///
+/// $O(m + n)$ where $m$ and $n$ are the lengths of the input sequences.
 fn intersection_ordered(a: &[usize], b: &[usize]) -> Vec<usize> {
     let (m, n) = (a.len(), b.len());
     let (mut i, mut j) = (0, 0);

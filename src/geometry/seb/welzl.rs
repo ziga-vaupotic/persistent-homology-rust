@@ -3,13 +3,33 @@ use rand::seq::SliceRandom;
 
 use crate::geometry::{Ball, Euclidean, Point, PointCloud};
 
-// E. Welzl, Smallest enclosing disks (balls and ellipsoids), 1991
-// https://doi.org/10.1007/BFb0038202
-// NOTE should be only used for low dimensions ie. < 5 (maybe up to 10? with a very small space)
-// the basic algorith listed in the article is O((dim + 1)(dim + 1)!n), while time complexity for
-// this specific version is not provided, it cannot be much better
-// this implementation also calculates the ball from a given boundary from scratch every
-// time so Gärtner 1999 should be prefered in most cases (once its implemented)
+/// Compute the smallest enclosing ball using Welzl's algorithm (exact).
+///
+/// This is a randomized algorithm that exactly computes the smallest enclosing ball
+/// of a set of points. It uses recursive subdivision and is guaranteed to find the optimal ball.
+///
+/// # Arguments
+///
+/// * `points` - Indices of points in the point cloud.
+/// * `space` - The Euclidean point cloud.
+///
+/// # Returns
+///
+/// A `Ball` representing the smallest enclosing ball of the input points.
+///
+/// # Complexity
+///
+/// Expected $O((d+1)! \cdot n)$ where $d$ is dimension and $n$ is number of points.
+/// Suitable for low dimensions (< 5, possibly up to 10).
+///
+/// # References
+///
+/// E. Welzl, Smallest enclosing disks (balls and ellipsoids), 1991
+/// <https://doi.org/10.1007/BFb0038202>
+///
+/// # Note
+///
+/// For most practical purposes, consider using `larsson` for faster approximate computation.
 pub fn welzl<M>(points: &[usize], space: &PointCloud<M>) -> Ball
 where
     M: Euclidean,

@@ -1,8 +1,22 @@
 #[derive(Debug, Clone)]
 /// A simplex in an abstract simplicial complex.
 ///
-/// The simplex stores its vertex indices and a filtration value used to determine
-/// the ordering in a filtration.
+/// A $k$-simplex is defined by `k+1` vertices stored in sorted order.
+/// The `filtration_value` determines the order in a filtration.
+///
+/// # Example
+///
+/// ```
+/// use persistent_homology::topology::Simplex;
+///
+/// // Create a 2-simplex (triangle) with vertices {0, 1, 2}
+/// let simplex = Simplex::new(vec![0, 1, 2], 1.5);
+/// assert_eq!(simplex.dim(), 2);
+///
+/// // Get its 1-faces (edges) with signs
+/// let boundary = simplex.boundary();
+/// assert_eq!(boundary.len(), 3); // A triangle has 3 edges
+/// ```
 pub struct Simplex {
     pub vertices: Vec<usize>,
     pub filtration_value: f64, // this can be implemented as a trait instead later on!
@@ -61,7 +75,12 @@ impl Simplex {
     }
 }
 
-/// Abstract simplical complex made of simplexes
+/// Abstract simplicial complex made of simplices.
+///
+/// A collection of simplices that form a simplicial complex
+/// (i.e., any subset of a simplex is also a simplex in the complex).
+/// This structure does not enforce the simplicial complex property;
+/// callers must ensure validity.
 pub struct SimplicialComplex {
     pub simplices: Vec<Simplex>,
 }

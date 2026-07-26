@@ -8,11 +8,23 @@ use std::collections::HashSet;
 /// A single persistence interval in a given dimension.
 ///
 /// `birth` and `death` are global filtration indices of the corresponding simplices.
-/// A `death` of `None` indicates the interval persists forever.
+/// A `death` of `None` indicates the interval persists forever (born but never dies).
 pub struct PersistencePair {
     pub dimension: usize,
     pub birth: usize,
     pub death: Option<usize>,
+}
+
+impl PersistencePair {
+    /// Check if this pair represents a finite interval (birth and death).
+    pub fn is_finite(&self) -> bool {
+        self.death.is_some()
+    }
+
+    /// Check if this pair represents an infinite interval (born but never dies).
+    pub fn is_infinite(&self) -> bool {
+        self.death.is_none()
+    }
 }
 
 /// A collection of persistence intervals.
@@ -37,8 +49,17 @@ impl PersistenceDiagram {
 
 /// Compute persistence pairs for a single reduced boundary matrix.
 ///
-/// The returned pairs represent finite intervals for each pivot and infinite
-/// intervals for zero columns that were never paired.
+/// The returned pairs represent finite intervals for each pivot (paired birth-death pairs)
+/// and infinite intervals for zero columns whose births were never paired as deaths.
+///
+/// # Arguments
+///
+/// * `matrix` - A reduced boundary matrix with computed pivot indices.
+/// * `dimension` - The homology dimension of this matrix.
+///
+/// # Returns
+///
+/// A vector of `PersistencePair` structs representing all persistence intervals at the given dimension.
 pub fn compute_persistence(
     matrix: &ReducedBoundaryMatrix,
     dimension: usize,
@@ -83,9 +104,18 @@ pub fn compute_persistence(
     pairs
 }
 
-/// Compute a persistence diagram from reduced boundary matrices across all dimensions.
+/// Compute a complete persistence diagram from reduced boundary matrices across all dimensions.
 ///
-/// Each matrix contributes persistence intervals for its homology dimension.
+/// Combines persistence pairs from each dimension into a single `PersistenceDiagram`.
+/// The dimension index automatically corresponds to the homological dimension.
+///
+/// # Arguments
+///
+/// * `matrices` - A slice of reduced boundary matrices, one per homology dimension.
+///
+/// # Returns
+///
+/// A `PersistenceDiagram` containing all persistence intervals from all dimensions.
 pub fn compute_persistence_diagram(matrices: &ReducedBoundaryMatrices) -> PersistenceDiagram {
     let mut pairs = Vec::new();
 
