@@ -4,6 +4,32 @@ use crate::topology::Filtration;
 
 use itertools::Itertools;
 
+/// Construct a Vietoris-Rips complex from a point cloud.
+///
+/// The Vietoris-Rips complex includes a $k$-simplex if all pairwise distances among its vertices
+/// are at most `epsilon`. The filtration value of each simplex is the maximum pairwise distance
+/// in that simplex.
+///
+/// # Arguments
+///
+/// * `space` - The point cloud with an associated metric.
+/// * `max_epsilon` - Maximum filtration value. Defaults to infinity if `None`.
+/// * `max_dim` - Maximum simplex dimension. Defaults to no limit if `None`.
+///
+/// # Returns
+///
+/// A `Filtration` ordered by filtration value, containing all Vietoris-Rips simplices.
+///
+/// # Example
+///
+/// ```ignore
+/// use persistent_homology::construction::vietoris_rips;
+/// use persistent_homology::geometry::{Point, PointCloud, EuclideanInnerProduct};
+///
+/// let points = vec![Point::new(vec![0.0]), Point::new(vec![1.0])];
+/// let cloud = PointCloud::new(points, EuclideanInnerProduct).unwrap();
+/// let filtration = vietoris_rips(&cloud, Some(2.0), Some(2));
+/// ```
 pub fn vietoris_rips<M>(
     space: &PointCloud<M>,
     max_epsilon: Option<f64>,
@@ -15,7 +41,11 @@ where
     let max_epsilon = max_epsilon.unwrap_or(f64::MAX);
     let max_dim = max_dim.unwrap_or(usize::MAX - 1);
 
-    let mut cons = Construction::new(max_dim, max_epsilon, 0.0);
+    let mut cons = Construction::new(max_dim, max_epsilon, 0.0, space);
+    if max_dim == 0 {
+        return Filtration::new(cons.simplices);
+    }
+
     if !cons.traverse_edges(space, 1.0, true) {
         return Filtration::new(cons.simplices);
     }

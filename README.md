@@ -20,3 +20,8 @@ The project currently supports:
 - Boundary operator discretisation
 - Boundary matrices and $\mathbb{Z}_2$ reduction
 - Betti number computation
+
+
+## On the use of AI
+Artificial intelligence was USED during the development of the library, however, the use was limited to writing (some) test and documentation. The
+latter was checked by the authors.

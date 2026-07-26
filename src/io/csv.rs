@@ -6,7 +6,31 @@ use crate::topology::Filtration;
 
 use csv;
 
-pub fn import_point_set_csv<const D: usize, M>(
+/// Import a point cloud from a CSV file.
+///
+/// Reads a CSV file where each row is a point and each column is a coordinate.
+/// The generic parameter `D` specifies the expected coordinate dimension of each point.
+///
+/// # Arguments
+///
+/// * `path` - Path to the CSV file.
+/// * `geometry` - The metric or inner product space for the point cloud.
+///
+/// # Returns
+///
+/// A `PointCloud` if successful, or an error if the file cannot be read or
+/// if points have inconsistent dimensions.
+///
+/// # Example
+///
+/// ```ignore
+/// use persistent_homology::io::csv::import_point_cloud_csv;
+/// use persistent_homology::geometry::EuclideanInnerProduct;
+/// use std::path::Path;
+///
+/// let cloud = import_point_cloud_csv::<2, _>(Path::new("points.csv"), EuclideanInnerProduct)?;
+/// ```
+pub fn import_point_cloud_csv<const D: usize, M>(
     path: &Path,
     geometry: M,
 ) -> Result<PointCloud<M>, Box<dyn Error>>
@@ -39,6 +63,19 @@ where
     Ok(PointCloud::new(points, geometry)?)
 }
 
+/// Export a filtration to a CSV file.
+///
+/// Writes each simplex to a row with columns for filtration value, dimension, and vertices.
+/// Simplices are sorted by filtration value.
+///
+/// # Arguments
+///
+/// * `path` - Path where the CSV file will be written.
+/// * `filtration` - The filtration to export.
+///
+/// # Returns
+///
+/// `Ok(())` if successful, or an error if the file cannot be written.
 pub fn export_filtration_csv(path: &str, filtration: &Filtration) -> Result<(), Box<dyn Error>> {
     let mut file = File::create(path)?;
 

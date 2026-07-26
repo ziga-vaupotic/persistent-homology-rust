@@ -2,6 +2,33 @@ use crate::construction::{Construction, cliques};
 use crate::geometry::{Euclidean, PointCloud, seb};
 use crate::topology::Filtration;
 
+/// Construct a Čech complex from a point cloud.
+///
+/// The Čech complex includes a $k$-simplex if the smallest enclosing ball (SEB) of its vertices
+/// has radius at most `epsilon`. The filtration value is the radius of the SEB.
+///
+/// # Arguments
+///
+/// * `space` - The point cloud with a Euclidean inner product space.
+/// * `max_epsilon` - Maximum filtration value. Defaults to infinity if `None`.
+/// * `max_dim` - Maximum simplex dimension. Defaults to no limit if `None`.
+/// * `radius_tolerance` - Tolerance for SEB computation. Set to 0 for exact computation.
+///   Use a positive value for faster approximate computation with the Larsson algorithm.
+///
+/// # Returns
+///
+/// A `Filtration` ordered by filtration value, containing all Čech simplices.
+///
+/// # Example
+///
+/// ```ignore
+/// use persistent_homology::construction::cech;
+/// use persistent_homology::geometry::{Point, PointCloud, EuclideanInnerProduct};
+///
+/// let points = vec![Point::new(vec![0.0, 0.0]), Point::new(vec![1.0, 0.0])];
+/// let cloud = PointCloud::new(points, EuclideanInnerProduct).unwrap();
+/// let filtration = cech(&cloud, Some(2.0), Some(2), 0.0);
+/// ```
 pub fn cech<M>(
     space: &PointCloud<M>,
     max_epsilon: Option<f64>,
@@ -15,7 +42,11 @@ where
     let max_dim = max_dim.unwrap_or(usize::MAX - 1);
     let radius_tolerance = radius_tolerance.abs();
 
-    let mut cons = Construction::new(max_dim, max_epsilon, radius_tolerance);
+    let mut cons = Construction::new(max_dim, max_epsilon, radius_tolerance, space);
+    if max_dim == 0 {
+        return Filtration::new(cons.simplices);
+    }
+
     if !cons.traverse_edges(space, 2.0, false) {
         return Filtration::new(cons.simplices);
     }
@@ -32,6 +63,10 @@ where
     Filtration::new(cons.simplices)
 }
 
+/// Construct a Čech complex with exact smallest enclosing ball computation.
+///
+/// This is a convenience wrapper around `cech()` with `radius_tolerance = 0.0`.
+/// Use this for guaranteed accuracy, though it may be slower for large cliques.
 pub fn cech_exact<M>(
     space: &PointCloud<M>,
     max_epsilon: Option<f64>,

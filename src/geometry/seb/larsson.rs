@@ -1,10 +1,31 @@
 use crate::geometry::{Ball, Euclidean, Point, PointCloud};
 
-// T. Larsson, L. Källberg, Fast and Robust Approximation of Smallest Enclosing Balls
-// in Arbitrary Dimensions, 2013
-// https://doi.org/10.1111/cgf.12176
-// NOTE O(dim n / epsilon + dim / epsilon^3) => good in higher dimensional spaces
-// NOTE r_optimal <= r_larsson <= r_optimal (1 + epsilon)
+/// Compute an approximate smallest enclosing ball using Larsson's algorithm.
+///
+/// This is a fast approximate algorithm for computing the smallest enclosing ball
+/// in arbitrary dimensions. It provides a guaranteed approximation ratio of $(1 + \epsilon)$.
+///
+/// # Arguments
+///
+/// * `points` - Indices of points in the point cloud.
+/// * `epsilon` - Approximation tolerance. The algorithm guarantees:
+///   $$r_{\text{optimal}} \leq r_{\text{larsson}} \leq r_{\text{optimal}} (1 + \epsilon)$$
+/// * `space` - The Euclidean point cloud.
+///
+/// # Returns
+///
+/// A `Ball` that approximately encloses all input points.
+///
+/// # Complexity
+///
+/// $O(d \cdot n / \epsilon + d / \epsilon^3)$ where $d$ is dimension and $n$ is number of points.
+/// Performs well in higher-dimensional spaces.
+///
+/// # References
+///
+/// T. Larsson, L. Källberg, Fast and Robust Approximation of Smallest Enclosing Balls
+/// in Arbitrary Dimensions, 2013
+/// <https://doi.org/10.1111/cgf.12176>
 pub fn larsson<M>(points: &[usize], epsilon: f64, space: &PointCloud<M>) -> Ball
 where
     M: Euclidean,
