@@ -1,82 +1,86 @@
-use crate::topology::{Simplex, SimplicialComplex};
+use crate::topology::{CellComplex, FilteredCell};
 
 /// A filtration is an ordered sequence of simplical complexes.
 ///
 /// It stores every simplex separately for performance,
 /// however, a simplical complex can be extracted.
-pub struct Filtration {
-    pub simplices: Vec<Simplex>,
+pub struct Filtration<C: FilteredCell> {
+    pub cells: Vec<C>,
 }
 
-impl Filtration {
+impl<C: FilteredCell> Filtration<C> {
     /// Create a new filtration from an ordered list of simplices.
     ///
     /// # Arguments
     ///
     /// * `simplices` - A list of (order) simplices.
-    pub fn new(mut simplices: Vec<Simplex>) -> Self {
-        Self::sort_simplices(&mut simplices);
-        Self { simplices }
+    pub fn new(mut cells: Vec<C>) -> Self {
+        Self::sort_cells(&mut cells);
+        Self { cells }
     }
 
     /// Return the number of simplices in the filtration.
     pub fn len(&self) -> usize {
-        self.simplices.len()
+        self.cells.len()
     }
 
     /// Return true if filtration is empty.
     pub fn is_empty(&self) -> bool {
-        self.simplices.len() == 0
+        self.cells.len() == 0
     }
 
     /// Return the maximal dimension of simplical complex.
     pub fn max_dim(&self) -> usize {
-        self.simplices.iter().max_by_key(|x| x.dim()).unwrap().dim()
+        self.cells.iter().max_by_key(|x| x.dim()).unwrap().dim()
     }
 
     /// Return the filtration values of largest simplical complex.
     pub fn max_filtration_value(&self) -> f64 {
-        self.simplices
+        self.cells
             .iter()
-            .max_by(|x, y| x.filtration_value.partial_cmp(&y.filtration_value).unwrap())
+            .max_by(|x, y| {
+                x.filtration_value()
+                    .partial_cmp(&y.filtration_value())
+                    .unwrap()
+            })
             .unwrap()
-            .filtration_value
+            .filtration_value()
     }
 
     // Sort filtration, without return value.
     pub fn sort(&mut self) {
-        Self::sort_simplices(&mut self.simplices);
+        Self::sort_cells(&mut self.cells);
     }
 
-    // Sort a list of simplices based on filtration value
+    // Sort a list of celles based on filtration value
     ///
     /// # Arguments
     ///
-    /// * `simplices` - list of a mutable simplices.
-    fn sort_simplices(simplices: &mut [Simplex]) {
-        simplices.sort_by(|a, b| {
-            a.filtration_value
-                .partial_cmp(&b.filtration_value)
+    /// * `cells` - list of a mutable cells.
+    fn sort_cells(cells: &mut [C]) {
+        cells.sort_by(|a, b| {
+            a.filtration_value()
+                .partial_cmp(&b.filtration_value())
                 .unwrap()
                 .then(a.dim().cmp(&b.dim()))
-                .then(a.vertices.cmp(&b.vertices))
+                .then(a.boundary().len().cmp(&b.boundary().len()))
         });
     }
 
-    /// Return the simplices of dim of largest simplical complex.
+    /// Return the simplices of dim of largest cells complex.
     ///
     /// # Arguments
     ///
-    /// * `dim` - dimension of simplical complex.
-    pub fn simplices_of_dim(&self, dim: usize) -> Vec<Simplex> {
-        let mut simplices: Vec<Simplex> = Vec::new();
-        for x in self.simplices.iter() {
+    /// * `dim` - dimension of cells complex.
+    pub fn cells_of_dim(&self, dim: usize) -> Vec<C> {
+        let mut cells: Vec<C> = Vec::new();
+        for x in self.cells.iter() {
             if x.dim() != dim {
                 continue;
             }
-            simplices.push(x.clone());
+            cells.push(x.clone());
         }
-        simplices
+        cells
     }
 
     /// Return the simplicial complex consisting of all simplices with filtration
@@ -85,12 +89,12 @@ impl Filtration {
     /// # Arguments
     ///
     /// * `epsilon` - 'epsilon' of simplical complex.
-    pub fn complex_at(&self, epsilon: f64) -> SimplicialComplex {
-        SimplicialComplex {
-            simplices: self
-                .simplices
+    pub fn complex_at(&self, epsilon: f64) -> CellComplex<C> {
+        CellComplex {
+            cells: self
+                .cells
                 .iter()
-                .filter(|s| s.filtration_value <= epsilon)
+                .filter(|s| (*s).filtration_value() <= epsilon)
                 .cloned()
                 .collect(),
         }

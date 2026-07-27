@@ -5,7 +5,7 @@ use std::ops::{Add, Sub};
 
 /// A point in an abstract Euclidean coordinate space.
 ///
-/// Coordinates are stored in a dynamic vector so points can live in arbitrary dimension.
+/// Coordinates are stored in a static vector of dimension D.
 #[derive(Clone)]
 pub struct Point<const D: usize> {
     pub coords: SVector<f64, D>,
@@ -79,18 +79,15 @@ impl<const D: usize> Sub<&Point<D>> for &Point<D> {
 
 /// A collection of points with an associated metric or inner product space.
 ///
-/// `PointCloud` enforces consistent point dimension D and underlying geometry
+/// `PointCloud` enforces consistent underlying geometry
 /// via traits such as `Metric` and `InnerProduct`.
-pub struct PointCloud<const D: usize, M> {
+pub struct PointCloud<const D: usize, M: Metric<D>> {
     // over R^n
     points: Vec<Point<D>>,
     geometry: M, // Metric space e.g.
-    dim: usize,  // This is added as an enforcement of consistency in a nodeset
 }
 
-impl<const D: usize, M> PointCloud<D, M>
-where
-    M: Copy,
+impl<const D: usize, M: Metric<D>> PointCloud<D, M>
 {
     /// Initialize a point cloud over given topology
     ///
@@ -101,11 +98,7 @@ where
     /// * `points` - list of points.
     pub fn new(points: Vec<Point<D>>, geometry: M) -> Result<Self, String> {
         if points.is_empty() {
-            return Ok(Self {
-                points,
-                geometry,
-                dim: 0,
-            });
+            return Ok(Self { points, geometry });
         }
 
         let dim = points[0].coords.len();
@@ -113,11 +106,7 @@ where
             return Err("Inconsistent point dimensions".into());
         }
 
-        Ok(Self {
-            points,
-            geometry,
-            dim,
-        })
+        Ok(Self { points, geometry })
     }
 
     /// Return the number of points in the cloud.
@@ -132,7 +121,7 @@ where
 
     /// Return the dimension of the underlying point space.
     pub fn dim(&self) -> usize {
-        self.dim
+        D
     }
 
     /// Get a reference to the point at the given index.

@@ -1,9 +1,9 @@
-use crate::geometry::{Point, PointCloud};
+use crate::geometry::{Point, PointCloud, Metric};
 use nalgebra::SVector;
 use std::{error::Error, fs::File, io::Write, path::Path};
 
 use crate::algebra::persistence::PersistenceDiagram;
-use crate::topology::Filtration;
+use crate::topology::{Filtration, Simplex};
 
 use csv;
 
@@ -31,7 +31,7 @@ use csv;
 ///
 /// let cloud = import_point_cloud_csv::<2, _>(Path::new("points.csv"), EuclideanInnerProduct)?;
 /// ```
-pub fn import_point_cloud_csv<const D: usize, M>(
+pub fn import_point_cloud_csv<const D: usize, M: Metric<D>>(
     path: &Path,
     geometry: M,
 ) -> Result<PointCloud<D, M>, Box<dyn Error>>
@@ -77,10 +77,13 @@ where
 /// # Returns
 ///
 /// `Ok(())` if successful, or an error if the file cannot be written.
-pub fn export_filtration_csv(path: &str, filtration: &Filtration) -> Result<(), Box<dyn Error>> {
+pub fn export_filtration_csv(
+    path: &str,
+    filtration: &Filtration<Simplex>,
+) -> Result<(), Box<dyn Error>> {
     let mut file = File::create(path)?;
 
-    let simplices = filtration.simplices.clone();
+    let simplices = filtration.cells.clone();
 
     for simplex in simplices {
         write!(file, "{}", simplex.filtration_value)?;

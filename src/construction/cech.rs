@@ -1,6 +1,6 @@
 use crate::construction::{Construction, cliques};
 use crate::geometry::{Euclidean, PointCloud, seb};
-use crate::topology::Filtration;
+use crate::topology::{Filtration, Simplex};
 
 /// Construct a Čech complex from a point cloud.
 ///
@@ -38,7 +38,7 @@ pub fn cech<const D: usize, M>(
     max_epsilon: Option<f64>,
     max_dim: Option<usize>,
     radius_tolerance: f64,
-) -> Filtration
+) -> Filtration<Simplex>
 where
     M: Euclidean<D>,
 {
@@ -74,7 +74,7 @@ pub fn cech_exact<const D: usize, M>(
     space: &PointCloud<D, M>,
     max_epsilon: Option<f64>,
     max_dim: Option<usize>,
-) -> Filtration
+) -> Filtration<Simplex>
 where
     M: Euclidean<D>,
 {

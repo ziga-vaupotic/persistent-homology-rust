@@ -1,6 +1,6 @@
 use crate::construction::{Construction, cliques};
 use crate::geometry::{Metric, PointCloud};
-use crate::topology::Filtration;
+use crate::topology::{Filtration, Simplex};
 
 use itertools::Itertools;
 
@@ -38,7 +38,7 @@ pub fn vietoris_rips<const D: usize, M>(
     space: &PointCloud<D, M>,
     max_epsilon: Option<f64>,
     max_dim: Option<usize>,
-) -> Filtration
+) -> Filtration<Simplex>
 where
     M: Metric<D>,
 {

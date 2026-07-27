@@ -1,22 +1,9 @@
+use crate::topology::{Cell, FilteredCell};
 #[derive(Debug, Clone)]
 /// A simplex in an abstract simplicial complex.
 ///
 /// A $k$-simplex is defined by `k+1` vertices stored in sorted order.
 /// The `filtration_value` determines the order in a filtration.
-///
-/// # Example
-///
-/// ```
-/// use persistent_homology::topology::Simplex;
-///
-/// // Create a 2-simplex (triangle) with vertices {0, 1, 2}
-/// let simplex = Simplex::new(vec![0, 1, 2], 1.5);
-/// assert_eq!(simplex.dim(), 2);
-///
-/// // Get its 1-faces (edges) with signs
-/// let boundary = simplex.boundary();
-/// assert_eq!(boundary.len(), 3); // A triangle has 3 edges
-/// ```
 pub struct Simplex {
     pub vertices: Vec<usize>,
     pub filtration_value: f64, // this can be implemented as a trait instead later on!
@@ -54,9 +41,11 @@ impl Simplex {
             filtration_value,
         }
     }
+}
 
+impl Cell for Simplex {
     /// Return the topological dimension of the simplex.
-    pub fn dim(&self) -> usize {
+    fn dim(&self) -> usize {
         self.vertices.len() - 1
     }
 
@@ -64,7 +53,7 @@ impl Simplex {
     ///
     /// Returns pairs `(coefficient, face)` where coefficient is `1` or `-1`
     /// coming from the alternating boundary formula.
-    pub fn boundary(&self) -> Vec<(i32, Simplex)> {
+    fn boundary(&self) -> Vec<(i32, Simplex)> {
         let mut result = Vec::new();
         let n = self.vertices.len();
         for i in 0..n {
@@ -80,14 +69,10 @@ impl Simplex {
     }
 }
 
-/// Abstract simplicial complex made of simplices.
-///
-/// A collection of simplices that form a simplicial complex
-/// (i.e., any subset of a simplex is also a simplex in the complex).
-/// This structure does not enforce the simplicial complex property;
-/// callers must ensure validity.
-pub struct SimplicialComplex {
-    pub simplices: Vec<Simplex>,
+impl FilteredCell for Simplex {
+    fn filtration_value(&self) -> f64 {
+        self.filtration_value
+    }
 }
 
 #[cfg(test)]
