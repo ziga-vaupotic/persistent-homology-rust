@@ -18,10 +18,10 @@ fn single_point() {
     let cech_filtration = cech_exact(&space, None, None);
 
     assert!(rips_filtration.len() == 1);
-    assert!(rips_filtration.simplices[0].filtration_value == 0.0);
+    assert!(rips_filtration.cells[0].filtration_value == 0.0);
 
     assert!(cech_filtration.len() == 1);
-    assert!(cech_filtration.simplices[0].filtration_value == 0.0);
+    assert!(cech_filtration.cells[0].filtration_value == 0.0);
 }
 
 #[test]
@@ -47,8 +47,8 @@ fn triangle() {
     assert!(cech_filtration.max_dim() == 2);
 
     for dim in 0..=2 {
-        let rips_simplices = rips_filtration.simplices_of_dim(dim);
-        let cech_simplices = cech_filtration.simplices_of_dim(dim);
+        let rips_simplices = rips_filtration.cells_of_dim(dim);
+        let cech_simplices = cech_filtration.cells_of_dim(dim);
 
         let i = dim as i32;
         let num = (-i.pow(3) + 2 * i.pow(2) - i + 3) as usize; // num(0) = 3, num(1) = 3, num(2) = 1
@@ -102,8 +102,8 @@ fn grid_2_dim() {
 
     let dim_sizes = [9, 20, 16, 4];
     for (dim, x) in dim_sizes.iter().enumerate() {
-        assert_eq!(rips_filtration.simplices_of_dim(dim).len(), *x);
-        assert_eq!(cech_filtration.simplices_of_dim(dim).len(), *x);
+        assert_eq!(rips_filtration.cells_of_dim(dim).len(), *x);
+        assert_eq!(cech_filtration.cells_of_dim(dim).len(), *x);
     }
 }
 
@@ -134,13 +134,7 @@ fn grid_3_dim() {
     let cech_dim_sizes = [27, 126, 144, 36];
 
     for dim in 0..=3 {
-        assert_eq!(
-            rips_filtration.simplices_of_dim(dim).len(),
-            rips_dim_sizes[dim]
-        );
-        assert_eq!(
-            cech_filtration.simplices_of_dim(dim).len(),
-            cech_dim_sizes[dim]
-        );
+        assert_eq!(rips_filtration.cells_of_dim(dim).len(), rips_dim_sizes[dim]);
+        assert_eq!(cech_filtration.cells_of_dim(dim).len(), cech_dim_sizes[dim]);
     }
 }

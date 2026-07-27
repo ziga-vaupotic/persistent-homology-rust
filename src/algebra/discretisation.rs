@@ -3,7 +3,7 @@
 //! Each simplex boundary is converted into a sparse column representation of a
 //! boundary operator over `\mathbb{Z}_2`.
 
-use crate::topology::{Filtration, Simplex};
+use crate::topology::{Cell, Filtration, Simplex};
 
 use crate::algebra::matrices::{BoundaryMatrices, BoundaryMatrix, ReducedBoundaryMatrices};
 
@@ -43,10 +43,10 @@ use std::collections::HashMap;
 /// let filtration = Filtration::new(simplices);
 /// let matrices = build_boundary_matrices(&filtration);
 /// ```
-pub fn build_boundary_matrices(filtration: &Filtration) -> BoundaryMatrices {
+pub fn build_boundary_matrices(filtration: &Filtration<Simplex>) -> BoundaryMatrices {
     let mut by_dim: Vec<Vec<&Simplex>> = Vec::new();
 
-    for simplex in &filtration.simplices {
+    for simplex in &filtration.cells {
         let d = simplex.dim();
 
         if d >= by_dim.len() {
@@ -58,7 +58,7 @@ pub fn build_boundary_matrices(filtration: &Filtration) -> BoundaryMatrices {
 
     // Global filtration index of every simplex
     let simplex_to_index: HashMap<&Simplex, usize> = filtration
-        .simplices
+        .cells
         .iter()
         .enumerate()
         .map(|(i, s)| (s, i))

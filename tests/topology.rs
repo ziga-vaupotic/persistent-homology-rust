@@ -15,11 +15,8 @@ fn test_filtration_is_sorted() {
 
     let filtration = vietoris_rips(&pointset, None, Some(1));
 
-    for i in 1..filtration.simplices.len() {
-        assert!(
-            filtration.simplices[i - 1].filtration_value
-                <= filtration.simplices[i].filtration_value
-        );
+    for i in 1..filtration.cells.len() {
+        assert!(filtration.cells[i - 1].filtration_value <= filtration.cells[i].filtration_value);
     }
 }
 
@@ -38,17 +35,17 @@ fn test_simple_persistence_example() {
     let filtration = vietoris_rips(&pointset, None, Some(1));
 
     // Should have 3 points, 3 edges (0-1 close, 0-2 and 1-2 far)
-    assert_eq!(filtration.simplices.len(), 6); // 3 verts + 3 edges
+    assert_eq!(filtration.cells.len(), 6); // 3 verts + 3 edges
 
     // The close edge should have lower filtration
     let close_edge_filtration = filtration
-        .simplices
+        .cells
         .iter()
         .find(|s| s.vertices == vec![0, 1])
         .unwrap()
         .filtration_value;
     let far_edge_filtration = filtration
-        .simplices
+        .cells
         .iter()
         .find(|s| s.vertices == vec![0, 2])
         .unwrap()
