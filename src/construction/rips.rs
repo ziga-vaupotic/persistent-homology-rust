@@ -1,5 +1,5 @@
 use crate::construction::{Construction, cliques};
-use crate::geometry::{Metric, PointCloud};
+use crate::geometry::{MetricSpace, PointCloud};
 use crate::topology::{Filtration, Simplex};
 
 use itertools::Itertools;
@@ -34,38 +34,34 @@ use itertools::Itertools;
 /// let cloud = PointCloud::new(points, EuclideanInnerProduct).unwrap();
 /// let filtration = vietoris_rips(&cloud, Some(2.0), Some(2));
 /// ```
-pub fn vietoris_rips<const D: usize, M>(
-    space: &PointCloud<D, M>,
+pub fn vietoris_rips<M: MetricSpace>(
+    cloud: &PointCloud<M>,
     max_epsilon: Option<f64>,
     max_dim: Option<usize>,
 ) -> Filtration<Simplex>
-where
-    M: Metric<D>,
 {
     let max_epsilon = max_epsilon.unwrap_or(f64::MAX);
     let max_dim = max_dim.unwrap_or(usize::MAX - 1);
 
-    let mut cons = Construction::new(max_dim, max_epsilon, 0.0, space);
+    let mut cons = Construction::new(max_dim, max_epsilon, 0.0, cloud);
     if max_dim == 0 {
         return Filtration::new(cons.simplices);
     }
 
-    if !cons.traverse_edges(space, 1.0, true) {
+    if !cons.traverse_edges(cloud, 1.0, true) {
         return Filtration::new(cons.simplices);
     }
 
-    cliques::find_all(space, rips_radius, &mut cons);
+    cliques::find_all(cloud, rips_radius, &mut cons);
 
     Filtration::new(cons.simplices)
 }
 
-fn rips_radius<const D: usize, M>(
+fn rips_radius<M: MetricSpace>(
     clique: &[usize],
-    _space: &PointCloud<D, M>,
+    _space: &PointCloud<M>,
     cons: &Construction,
 ) -> Option<f64>
-where
-    M: Metric<D>,
 {
     let mut max_d = 0.0;
     for v in (0..clique.len()).combinations(2) {

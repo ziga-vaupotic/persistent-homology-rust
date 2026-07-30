@@ -17,10 +17,10 @@ fn in_2_dimensions() {
             rand::random_range(0.0..=1.0),
             rand::random_range(0.0..(2.0 * PI)),
         );
-        point_set.push(Point::<2>::new([radius * phi.cos(), radius * phi.sin()]));
+        point_set.push(Point::new([radius * phi.cos(), radius * phi.sin()]));
     }
     (0..2).for_each(|x| {
-        point_set.push(Point::<2>::new([(x as f64 * PI).cos(), (x as f64 * PI).sin()]));
+        point_set.push(Point::new([(x as f64 * PI).cos(), (x as f64 * PI).sin()]));
     });
 
     let space = EuclideanCloud::new(point_set);

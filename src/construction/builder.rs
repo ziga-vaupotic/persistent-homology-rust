@@ -1,4 +1,4 @@
-use crate::geometry::{Metric, PointCloud};
+use crate::geometry::{MetricSpace, PointCloud};
 use crate::topology::Simplex;
 
 use itertools::Itertools;
@@ -36,14 +36,12 @@ impl Construction {
     /// * `max_epsilon` - Maximum filtration value threshold.
     /// * `tolerance` - Tolerance for geometric computations.
     /// * `space` - The point cloud.
-    pub fn new<const D: usize, M>(
+    pub fn new<M : MetricSpace>(
         max_dim: usize,
         max_epsilon: f64,
         tolerance: f64,
-        space: &PointCloud<D, M>,
+        space: &PointCloud<M>,
     ) -> Self
-    where
-        M: Metric<D>,
     {
         let mut simplices: Vec<Simplex> = Vec::new();
         let mut adjacency: HashMap<usize, Vec<usize>> = HashMap::new();
@@ -94,21 +92,19 @@ impl Construction {
     ///
     /// This method maintains the adjacency lists in sorted order for compatibility
     /// with the clique enumeration algorithm.
-    pub fn traverse_edges<const D: usize, M>(
+    pub fn traverse_edges<M : MetricSpace>(
         &mut self,
-        space: &PointCloud<D, M>,
+        space: &PointCloud<M>,
         factor: f64,
         save_distance: bool,
     ) -> bool
-    where
-        M: Metric<D>,
     {
         let n = space.len();
 
         let mut has_edges = false;
         for v in (0..n).combinations(2) {
             let (x, y) = (v[0], v[1]); // x < y
-            let d = space.distance(space.get(x), space.get(y));
+            let d = M::distance(space.get(x), space.get(y));
 
             if d > factor * self.max_epsilon {
                 continue;

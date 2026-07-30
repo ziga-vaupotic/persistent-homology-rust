@@ -4,7 +4,7 @@
 //! to enumerate all maximal cliques in a graph defined by point distances.
 
 use crate::construction::Construction;
-use crate::geometry::{Metric, PointCloud};
+use crate::geometry::{MetricSpace, PointCloud};
 
 /// Find all cliques in the adjacency graph defined by the construction state.
 ///
@@ -22,13 +22,11 @@ use crate::geometry::{Metric, PointCloud};
 /// # Complexity
 ///
 /// $O(3^{n/3})$ in the worst case when enumerating all maximal cliques.
-pub fn find_all<const D: usize, M>(
-    space: &PointCloud<D, M>,
-    radius: fn(&[usize], &PointCloud<D, M>, &Construction) -> Option<f64>,
+pub fn find_all<M: MetricSpace>(
+    space: &PointCloud<M>,
+    radius: fn(&[usize], &PointCloud<M>, &Construction) -> Option<f64>,
     cons: &mut Construction,
-) where
-    M: Metric<D>,
-{
+) {
     // TODO add degeneracy ordering
     // do not forget that candidates still has to be ordered
     // https://arxiv.org/abs/1006.5440
@@ -72,15 +70,13 @@ pub fn find_all<const D: usize, M>(
 /// - Implement degeneracy ordering as per https://arxiv.org/abs/1006.5440
 /// - Explore pivoting strategies from https://arxiv.org/abs/2311.13798v2
 /// - Consider maximal clique finding (Tomita et al.) as a preprocessing step
-fn bron_kerbosch<const D: usize, M>(
+fn bron_kerbosch<M: MetricSpace>(
     clique: &mut Vec<usize>,
     candidates: Vec<usize>,
-    space: &PointCloud<D, M>,
-    radius: fn(&[usize], &PointCloud<D, M>, &Construction) -> Option<f64>,
+    space: &PointCloud<M>,
+    radius: fn(&[usize], &PointCloud<M>, &Construction) -> Option<f64>,
     cons: &mut Construction,
-) where
-    M: Metric<D>,
-{
+) {
     if clique.len() > 2 {
         match radius(clique, space, cons) {
             Some(d) => cons.push(clique.clone(), d),
