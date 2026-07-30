@@ -1,63 +1,51 @@
-use crate::geometry::Point;
 
-/// A metric space over points.
-///
-/// Implementations define a distance function satisfying the metric axioms.
-/// The metric must be `Copy` so that point clouds can store the geometry by value.
-pub trait Metric<const D: usize>: Copy {
-    /// Compute the distance between two points.
-    fn distance(&self, a: &Point<D>, b: &Point<D>) -> f64;
+
+
+// TODO docs
+pub trait Space {
+    type Element;
 }
 
-/// A normed vector space over points.
-///
-/// Implements a norm (length) function on points.
-pub trait Norm<const D: usize>: Copy {
-    /// Compute the norm (length) of a point/vector.
-    fn norm(&self, a: &Point<D>) -> f64;
+
+pub trait MetricSpace : Space {
+    fn distance(a : &Self::Element, b : &Self::Element) -> f64;
 }
 
-/// An inner product space over points.
-///
-/// Implements a bilinear inner (dot) product function.
-pub trait InnerProduct<const D: usize>: Copy {
-    /// Compute the inner (dot) product of two points/vectors.
-    fn dot(&self, a: &Point<D>, b: &Point<D>) -> f64;
+
+pub trait VectorSpace : Space {
+    type Scalar;
+
+    fn add(a : &Self::Element, b : &Self::Element) -> Self::Element;
+    fn sub(a : &Self::Element, b : &Self::Element) -> Self::Element;
+    fn mul(a : &Self::Element, b : &Self::Scalar) -> Self::Element;
+    fn dim() -> usize;
 }
 
-impl<T, const D: usize> Metric<D> for T
-where
-    T: Norm<D>,
-{
-    fn distance(&self, a: &Point<D>, b: &Point<D>) -> f64 {
-        let diff = a - b;
-        self.norm(&diff)
+
+pub trait NormSpace : VectorSpace {
+    fn norm(a : &Self::Element) -> f64;
+}
+
+
+impl<T : NormSpace> MetricSpace for T {
+
+    fn distance(a : &Self::Element, b : &Self::Element) -> f64 {
+        Self::norm(&Self::sub(a, b))
     }
+
 }
 
-impl<T, const D: usize> Norm<D> for T
-where
-    T: InnerProduct<D>,
-{
-    fn norm(&self, a: &Point<D>) -> f64 {
-        self.dot(a, a).sqrt()
+
+pub trait InnerProductSpace : VectorSpace<Scalar = f64> {
+    fn dot(a : &Self::Element, b : &Self::Element) -> Self::Scalar;
+    fn norm_squared(a : &Self::Element) -> f64 { Self::dot(a, a) }
+}
+
+
+impl<T : InnerProductSpace> NormSpace for T {
+
+    fn norm(a : &Self::Element) -> f64 {
+        Self::norm_squared(a).sqrt()
     }
+
 }
-
-/// Marker trait for Euclidean inner product spaces.
-pub trait Euclidean<const D: usize>: InnerProduct<D> {}
-
-#[derive(Clone, Copy)]
-/// A Euclidean inner product implementation over points.
-///
-/// Computes the standard dot product: $\langle a, b \rangle = a \cdot b$.
-/// Induces the Euclidean norm and metric.
-pub struct EuclideanInnerProduct;
-
-impl<const D: usize> InnerProduct<D> for EuclideanInnerProduct {
-    fn dot(&self, a: &Point<D>, b: &Point<D>) -> f64 {
-        a.coords.dot(&b.coords)
-    }
-}
-
-impl<const D: usize> Euclidean<D> for EuclideanInnerProduct {}

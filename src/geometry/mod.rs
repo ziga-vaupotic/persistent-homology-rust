@@ -6,9 +6,11 @@
 pub mod seb; // smallest enclosing ball
 
 mod ball;
-mod points;
+mod euclidean;
+mod point_cloud;
 mod space;
 
 pub use self::ball::*;
-pub use self::points::*;
+pub use self::euclidean::*;
+pub use self::point_cloud::*;
 pub use self::space::*;
