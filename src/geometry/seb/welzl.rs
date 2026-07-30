@@ -1,7 +1,7 @@
 use nalgebra::{DMatrix, DVector, SVector};
 use rand::seq::SliceRandom;
 
-use crate::geometry::{Ball, EuclideanBall, EuclideanSpace, MetricSpace, Point, EuclideanCloud};
+use crate::geometry::{Ball, EuclideanBall, EuclideanCloud, EuclideanSpace, MetricSpace, Point};
 
 /// Compute the smallest enclosing ball using Welzl's algorithm (exact).
 ///
@@ -30,8 +30,7 @@ use crate::geometry::{Ball, EuclideanBall, EuclideanSpace, MetricSpace, Point, E
 /// # Note
 ///
 /// For most practical purposes, consider using `larsson` for faster approximate computation.
-pub fn welzl<const N: usize>(points: &[usize], space: &EuclideanCloud<N>) -> EuclideanBall<N>
-{
+pub fn welzl<const N: usize>(points: &[usize], space: &EuclideanCloud<N>) -> EuclideanBall<N> {
     let mut P = points.to_owned();
     P.shuffle(&mut rand::rng());
 
@@ -46,8 +45,7 @@ fn welzl_rec<const N: usize>(
     P: &mut [usize],
     B: &mut Vec<usize>,
     space: &EuclideanCloud<N>,
-) -> EuclideanBall<N>
-{
+) -> EuclideanBall<N> {
     let mut miniball = from_boundary(B, space);
 
     if P.is_empty() || B.len() == N + 1 {
@@ -75,7 +73,10 @@ fn move_front(v: &mut [usize], i: usize) {
     v[..=i].rotate_right(1);
 }
 
-fn from_boundary<const N: usize>(boundary: &[usize], space: &EuclideanCloud<N>) -> EuclideanBall<N>
+fn from_boundary<const N: usize>(
+    boundary: &[usize],
+    space: &EuclideanCloud<N>,
+) -> EuclideanBall<N>
 // |boundary| <= dim + 1
 {
     match boundary.len() {
@@ -106,7 +107,10 @@ fn from_boundary<const N: usize>(boundary: &[usize], space: &EuclideanCloud<N>) 
 // find isometry to R^n subset R^d, where n is the dimension of that subspace
 // calculate miniball there then move the center back to original subspace
 // no need to change the radius as we have an isometry
-fn on_affine_subspace<const N: usize>(boundary: &[usize], space: &EuclideanCloud<N>) -> EuclideanBall<N>
+fn on_affine_subspace<const N: usize>(
+    boundary: &[usize],
+    space: &EuclideanCloud<N>,
+) -> EuclideanBall<N>
 // 2 < |boundary| < dim + 1
 {
     let q0 = space.get(boundary[0]);

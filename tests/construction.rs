@@ -6,11 +6,9 @@ use std::f64::consts::PI;
 
 #[test]
 fn single_point() {
-    let space = PointCloud::new(
-        vec![Point::<3>::new(SVector::<f64, 3>::from_row_slice(&[
-            0.0, 0.0, 0.0,
-        ]))],
-    );
+    let space = PointCloud::new(vec![Point::<3>::new(SVector::<f64, 3>::from_row_slice(&[
+        0.0, 0.0, 0.0,
+    ]))]);
 
     let rips_filtration = vietoris_rips(&space, None, None);
     let cech_filtration = cech_exact(&space, None, None);

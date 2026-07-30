@@ -14,8 +14,7 @@ fn main() {
     let path_data = format!("examples/data/{}.csv", path_name);
     let path = Path::new(&path_data);
 
-    let pointset = import_point_cloud_csv::<2>(path)
-        .expect("Failed to read CSV");
+    let pointset = import_point_cloud_csv::<2>(path).expect("Failed to read CSV");
 
     let filtration = cech(&pointset, Some(2.0), Some(2), 1e-6);
 

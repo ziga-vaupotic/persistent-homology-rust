@@ -1,6 +1,6 @@
 use nalgebra::SVector;
 use persistent_homology::construction::vietoris_rips;
-use persistent_homology::geometry::{Point, EuclideanCloud};
+use persistent_homology::geometry::{EuclideanCloud, Point};
 
 #[test]
 fn test_filtration_is_sorted() {

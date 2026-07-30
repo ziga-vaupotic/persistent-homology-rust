@@ -38,8 +38,7 @@ pub fn vietoris_rips<M: MetricSpace>(
     cloud: &PointCloud<M>,
     max_epsilon: Option<f64>,
     max_dim: Option<usize>,
-) -> Filtration<Simplex>
-{
+) -> Filtration<Simplex> {
     let max_epsilon = max_epsilon.unwrap_or(f64::MAX);
     let max_dim = max_dim.unwrap_or(usize::MAX - 1);
 
@@ -61,8 +60,7 @@ fn rips_radius<M: MetricSpace>(
     clique: &[usize],
     _space: &PointCloud<M>,
     cons: &Construction,
-) -> Option<f64>
-{
+) -> Option<f64> {
     let mut max_d = 0.0;
     for v in (0..clique.len()).combinations(2) {
         let d = cons.distance[&(clique[v[0]], clique[v[1]])];

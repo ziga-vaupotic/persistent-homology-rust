@@ -36,9 +36,7 @@ impl<const N: usize> InnerProductSpace for EuclideanSpace<N> {
     }
 }
 
-
 impl<const N: usize> EuclideanSpace<N> {
-
     pub fn standard_unit(i: usize) -> Point<N> {
         assert!(i < N);
         let mut coords = SVector::zeros();
@@ -47,17 +45,15 @@ impl<const N: usize> EuclideanSpace<N> {
         Point::new(coords)
     }
 
-
     pub fn zero() -> Point<N> {
         let coords = SVector::zeros();
         Point::new(coords)
     }
-
 }
 
 #[derive(Clone)]
 pub struct Point<const N: usize> {
-    pub coords: SVector<f64, N>
+    pub coords: SVector<f64, N>,
 }
 
 impl<const N: usize> Point<N> {

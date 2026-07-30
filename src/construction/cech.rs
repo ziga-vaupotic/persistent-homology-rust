@@ -1,5 +1,5 @@
 use crate::construction::{Construction, cliques};
-use crate::geometry::{EuclideanSpace, EuclideanCloud, seb};
+use crate::geometry::{EuclideanCloud, EuclideanSpace, seb};
 use crate::topology::{Filtration, Simplex};
 
 /// Construct a Čech complex from a point cloud.
@@ -38,8 +38,7 @@ pub fn cech<const N: usize>(
     max_epsilon: Option<f64>,
     max_dim: Option<usize>,
     radius_tolerance: f64,
-) -> Filtration<Simplex>
-{
+) -> Filtration<Simplex> {
     let max_epsilon = max_epsilon.unwrap_or(f64::MAX / 2.0);
     let max_dim = max_dim.unwrap_or(usize::MAX - 1);
     let radius_tolerance = radius_tolerance.abs();
@@ -72,8 +71,7 @@ pub fn cech_exact<const N: usize>(
     space: &EuclideanCloud<N>,
     max_epsilon: Option<f64>,
     max_dim: Option<usize>,
-) -> Filtration<Simplex>
-{
+) -> Filtration<Simplex> {
     cech(space, max_epsilon, max_dim, 0.0)
 }
 
@@ -81,8 +79,7 @@ fn in_ball_approx<const N: usize>(
     clique: &[usize],
     space: &EuclideanCloud<N>,
     cons: &Construction,
-) -> Option<f64>
-{
+) -> Option<f64> {
     let miniball = seb::larsson(clique, cons.tolerance, space);
     if miniball.r() > cons.max_epsilon {
         return None;
@@ -95,8 +92,7 @@ fn in_ball_exact<const N: usize>(
     clique: &[usize],
     space: &EuclideanCloud<N>,
     cons: &Construction,
-) -> Option<f64>
-{
+) -> Option<f64> {
     let clique_vec = clique.to_vec();
     let miniball = seb::welzl(&clique_vec, space);
     if miniball.r() > cons.max_epsilon {
