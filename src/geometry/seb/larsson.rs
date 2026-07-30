@@ -1,4 +1,4 @@
-use crate::geometry::{Ball, Euclidean, Point, PointCloud};
+use crate::geometry::{Ball, EuclideanBall, EuclideanCloud, EuclideanSpace, MetricSpace, Point};
 
 /// Compute an approximate smallest enclosing ball using Larsson's algorithm.
 ///
@@ -26,16 +26,13 @@ use crate::geometry::{Ball, Euclidean, Point, PointCloud};
 /// T. Larsson, L. Källberg, Fast and Robust Approximation of Smallest Enclosing Balls
 /// in Arbitrary Dimensions, 2013
 /// <https://doi.org/10.1111/cgf.12176>
-pub fn larsson<const D: usize, M>(
+pub fn larsson<const N: usize>(
     points: &[usize],
     epsilon: f64,
-    space: &PointCloud<D, M>,
-) -> Ball<D>
-where
-    M: Euclidean<D>,
-{
+    space: &EuclideanCloud<N>,
+) -> EuclideanBall<N> {
     let delta = epsilon / 2.0;
-    let mut C: Vec<Point<D>> = Vec::new();
+    let mut C: Vec<Point<N>> = Vec::new();
 
     let (q_prime, _d) = farthest_point_space(space.get(points[0]), points, space);
     let (q, d) = farthest_point_space(&q_prime, points, space);
@@ -49,25 +46,22 @@ where
         let (p, h) = farthest_point_space(c.o(), points, space);
         if h <= c.r() * (1.0 + epsilon) {
             return c;
+            return EuclideanBall::new(c.center, h);
         }
 
         C.push(p.clone());
         c = update_ball(&c, &p, h);
-        c = solve_approx_ball::<D, M>(c.clone(), &C, delta, space);
+        c = solve_approx_ball(c.clone(), &C, delta);
     }
 }
 
-fn solve_approx_ball<const D: usize, M>(
-    mut c: Ball<D>,
-    P: &[Point<D>],
+fn solve_approx_ball<const N: usize>(
+    mut c: Ball<EuclideanSpace<N>>,
+    P: &[Point<N>],
     delta: f64,
-    space: &PointCloud<D, M>,
-) -> Ball<D>
-where
-    M: Euclidean<D>,
-{
+) -> EuclideanBall<N> {
     loop {
-        let (q, h) = farthest_point::<D, M>(c.o(), P, space);
+        let (q, h) = farthest_point(c.o(), P);
         if h <= c.r() * (1.0 + delta) {
             return c;
         }
@@ -75,18 +69,11 @@ where
     }
 }
 
-fn farthest_point<const D: usize, M>(
-    p: &Point<D>,
-    P: &[Point<D>],
-    space: &PointCloud<D, M>,
-) -> (Point<D>, f64)
-where
-    M: Euclidean<D>,
-{
+fn farthest_point<const N: usize>(p: &Point<N>, P: &[Point<N>]) -> (Point<N>, f64) {
     let mut max_distance = 0.0;
     let mut farthest_point = p.clone();
     for x in P.iter() {
-        let d = space.distance(p, x);
+        let d = EuclideanSpace::distance(p, x);
         if d >= max_distance {
             max_distance = d;
             farthest_point = x.clone();
@@ -95,17 +82,14 @@ where
     (farthest_point, max_distance)
 }
 
-fn farthest_point_space<const D: usize, M>(
-    p: &Point<D>,
+fn farthest_point_space<const N: usize>(
+    p: &Point<N>,
     P: &[usize],
-    space: &PointCloud<D, M>,
-) -> (Point<D>, f64)
-where
-    M: Euclidean<D>,
-{
+    space: &EuclideanCloud<N>,
+) -> (Point<N>, f64) {
     let (mut max_distance, mut max_index) = (0.0, 0);
     for &i in P.iter() {
-        let d = space.distance(space.get(i), p);
+        let d = EuclideanSpace::distance(space.get(i), p);
         if d >= max_distance {
             max_distance = d;
             max_index = i;
@@ -115,13 +99,16 @@ where
 }
 
 fn center_of_mass<const D: usize>(p: &Point<D>, q: &Point<D>) -> Point<D> {
-    let mut o = p + q;
-    o.multiply(1.0 / 2.0);
-    o
+    (1.0 / 2.0) * &(p + q)
 }
 
-fn update_ball<const D: usize>(old: &Ball<D>, p: &Point<D>, h: f64) -> Ball<D> {
-    let mut a = old.o() - p;
-    a.multiply(old.r() / h);
-    Ball::new(&a + p, (old.r().powf(2.0) / h + h) / 2.0)
+fn update_ball<const N: usize>(
+    old: &Ball<EuclideanSpace<N>>,
+    p: &Point<N>,
+    h: f64,
+) -> EuclideanBall<N> {
+    Ball::new(
+        &((old.r() / h) * &(old.o() - p)) + p,
+        (old.r().powf(2.0) / h + h) / 2.0,
+    )
 }

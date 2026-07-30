@@ -1,7 +1,7 @@
 use nalgebra::{DMatrix, DVector, SVector};
 use rand::seq::SliceRandom;
 
-use crate::geometry::{Ball, Euclidean, Point, PointCloud};
+use crate::geometry::{Ball, EuclideanBall, EuclideanSpace, MetricSpace, Point, EuclideanCloud};
 
 /// Compute the smallest enclosing ball using Welzl's algorithm (exact).
 ///
@@ -30,9 +30,7 @@ use crate::geometry::{Ball, Euclidean, Point, PointCloud};
 /// # Note
 ///
 /// For most practical purposes, consider using `larsson` for faster approximate computation.
-pub fn welzl<const D: usize, M>(points: &[usize], space: &PointCloud<D, M>) -> Ball<D>
-where
-    M: Euclidean<D>,
+pub fn welzl<const N: usize>(points: &[usize], space: &EuclideanCloud<N>) -> EuclideanBall<N>
 {
     let mut P = points.to_owned();
     P.shuffle(&mut rand::rng());
@@ -44,17 +42,15 @@ where
 // NOTE should probably be using LinkedList instead of Vec
 // unfortunatelly rust LinkedLists do not support remove/insert operations (nightly versions only)
 // TODO consider a move to VecDeque (for P only)
-fn welzl_rec<const D: usize, M>(
+fn welzl_rec<const N: usize>(
     P: &mut [usize],
     B: &mut Vec<usize>,
-    space: &PointCloud<D, M>,
-) -> Ball<D>
-where
-    M: Euclidean<D>,
+    space: &EuclideanCloud<N>,
+) -> EuclideanBall<N>
 {
     let mut miniball = from_boundary(B, space);
 
-    if P.is_empty() || B.len() == space.dim() + 1 {
+    if P.is_empty() || B.len() == N + 1 {
         return miniball;
     }
 
@@ -62,7 +58,7 @@ where
     for i in 0..n {
         let p = P[i];
 
-        if space.contained_in_ball(&miniball, space.get(p)) {
+        if miniball.contains(space.get(p)) {
             continue;
         }
 
@@ -79,28 +75,26 @@ fn move_front(v: &mut [usize], i: usize) {
     v[..=i].rotate_right(1);
 }
 
-fn from_boundary<const D: usize, M>(boundary: &[usize], space: &PointCloud<D, M>) -> Ball<D>
+fn from_boundary<const N: usize>(boundary: &[usize], space: &EuclideanCloud<N>) -> EuclideanBall<N>
 // |boundary| <= dim + 1
-where
-    M: Euclidean<D>,
 {
     match boundary.len() {
-        0 => Ball::new(Point::new(SVector::<f64, D>::zeros()), 0.0),
+        0 => Ball::new(Point::new(SVector::<f64, N>::zeros()), 0.0),
         1 => Ball::new(space.get(boundary[0]).clone(), 0.0),
         2 => {
-            let mut o = space.get(boundary[0]) + space.get(boundary[1]);
-            o.multiply(1.0 / 2.0);
-            let r = space.distance(&o, space.get(boundary[0]));
+            let (x, y) = (boundary[0], boundary[1]);
+            let o = 1.0 / 2.0 * &(space.get(x) + space.get(y));
+            let r = EuclideanSpace::distance(&o, space.get(x));
             Ball::new(o, r)
         }
-        x if x == space.dim() + 1 => {
+        x if x == N + 1 => {
             let points = boundary
                 .iter()
-                .map(|&x| DVector::from_iterator(D, space.get(x).coords.iter().copied()))
+                .map(|&x| DVector::from_iterator(N, space.get(x).coords.iter().copied()))
                 .collect::<Vec<DVector<f64>>>();
             let (centre, radius) = circumsphere(&points);
 
-            let centre_point = Point::new(SVector::<f64, D>::from_iterator(centre.iter().copied()));
+            let centre_point = Point::new(SVector::<f64, N>::from_iterator(centre.iter().copied()));
             Ball::new(centre_point, radius)
         }
         _ => on_affine_subspace(boundary, space),
@@ -112,13 +106,11 @@ where
 // find isometry to R^n subset R^d, where n is the dimension of that subspace
 // calculate miniball there then move the center back to original subspace
 // no need to change the radius as we have an isometry
-fn on_affine_subspace<const D: usize, M>(boundary: &[usize], space: &PointCloud<D, M>) -> Ball<D>
+fn on_affine_subspace<const N: usize>(boundary: &[usize], space: &EuclideanCloud<N>) -> EuclideanBall<N>
 // 2 < |boundary| < dim + 1
-where
-    M: Euclidean<D>,
 {
     let q0 = space.get(boundary[0]);
-    let dim = space.dim();
+    let dim = N;
 
     let linear_parts = DMatrix::from_fn(dim, boundary.len() - 1, |row, col| {
         space.get(boundary[col + 1]).coords[row] - q0.coords[row]
@@ -139,7 +131,7 @@ where
     // center = basis * center_new + q_0
     let center_in_original_space = &basis * &centre;
     Ball::new(
-        &Point::new(SVector::<f64, D>::from_iterator(
+        &Point::new(SVector::<f64, N>::from_iterator(
             center_in_original_space.iter().cloned(),
         )) + q0,
         radius,

@@ -1,5 +1,7 @@
 use nalgebra::SVector;
-use persistent_homology::geometry::{EuclideanInnerProduct, Point, PointCloud, seb::*};
+use persistent_homology::geometry::{
+    EuclideanCloud, EuclideanSpace, MetricSpace, Point, PointCloud, seb::*,
+};
 
 use std::f64::consts::PI;
 
@@ -15,26 +17,20 @@ fn in_2_dimensions() {
             rand::random_range(0.0..=1.0),
             rand::random_range(0.0..(2.0 * PI)),
         );
-        point_set.push(Point::<2>::new(SVector::<f64, 2>::from_row_slice(&[
-            radius * phi.cos(),
-            radius * phi.sin(),
-        ])));
+        point_set.push(Point::<2>::new([radius * phi.cos(), radius * phi.sin()]));
     }
     (0..2).for_each(|x| {
-        point_set.push(Point::<2>::new(SVector::<f64, 2>::from_row_slice(&[
-            (x as f64 * PI).cos(),
-            (x as f64 * PI).sin(),
-        ])))
+        point_set.push(Point::<2>::new([(x as f64 * PI).cos(), (x as f64 * PI).sin()]));
     });
 
-    let space = PointCloud::new(point_set, EuclideanInnerProduct).unwrap();
+    let space = EuclideanCloud::new(point_set);
 
     let points: Vec<usize> = (0..(r + 2)).collect(); // every point
 
     let welzl_ball = welzl(&points, &space);
     let larsson_ball = larsson(&points, 0.01, &space);
 
-    let center = Point::<2>::new(SVector::<f64, 2>::from_row_slice(&[0.0, 0.0]));
+    let center = EuclideanSpace::<2>::zero();
     let radius = 1.0;
 
     assert!((welzl_ball.o() - &center).is_zero());
@@ -51,8 +47,8 @@ fn in_3_plus_dimensions() {
         macro_rules! run_dim {
             ($d:literal) => {{
                 let point_set: Vec<Point<$d>> =
-                    (0..$d).map(|i| Point::<$d>::standard_unit(i)).collect();
-                let space = PointCloud::new(point_set, EuclideanInnerProduct).unwrap();
+                    (0..$d).map(|i| EuclideanSpace::<$d>::standard_unit(i)).collect();
+                let space = PointCloud::new(point_set);
 
                 for i in 1..=$d {
                     let points: Vec<usize> = (0..i).collect();
@@ -62,7 +58,7 @@ fn in_3_plus_dimensions() {
                             .map(|x| if x < i { 1.0 / i as f64 } else { 0.0 })
                             .collect::<Vec<f64>>(),
                     ));
-                    let radius = space.distance(&center, space.get(0));
+                    let radius = EuclideanSpace::distance(&center, space.get(0));
 
                     let welzl_ball = welzl(&points, &space);
                     let larsson_ball = larsson(&points, 0.01, &space);
