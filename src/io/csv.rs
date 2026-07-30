@@ -1,4 +1,4 @@
-use crate::geometry::{Point, PointCloud, Metric};
+use crate::geometry::{Point, PointCloud, EuclideanCloud};
 use nalgebra::SVector;
 use std::{error::Error, fs::File, io::Write, path::Path};
 
@@ -31,37 +31,34 @@ use csv;
 ///
 /// let cloud = import_point_cloud_csv::<2, _>(Path::new("points.csv"), EuclideanInnerProduct)?;
 /// ```
-pub fn import_point_cloud_csv<const D: usize, M: Metric<D>>(
+pub fn import_point_cloud_csv<const N: usize>(
     path: &Path,
-    geometry: M,
-) -> Result<PointCloud<D, M>, Box<dyn Error>>
-where
-    M: Copy,
+) -> Result<EuclideanCloud<N>, Box<dyn Error>>
 {
     let file = File::open(path)?;
     let mut rdr = csv::ReaderBuilder::new()
         .has_headers(false)
         .from_reader(file);
 
-    let mut points: Vec<Point<D>> = Vec::new();
+    let mut points: Vec<Point<N>> = Vec::new();
 
     for result in rdr.records() {
         let record = result?;
 
-        if record.len() != D {
-            return Err(format!("Expected {} columns, got {}", D, record.len()).into());
+        if record.len() != N {
+            return Err(format!("Expected {} columns, got {}", N, record.len()).into());
         }
 
-        let mut arr = Vec::with_capacity(D);
+        let mut arr = Vec::with_capacity(N);
 
         for v in record.iter() {
             arr.push(v.parse::<f64>()?);
         }
 
-        points.push(Point::new(SVector::<f64, D>::from_row_slice(&arr)));
+        points.push(Point::new(SVector::<f64, N>::from_row_slice(&arr)));
     }
 
-    Ok(PointCloud::new(points, geometry)?)
+    Ok(PointCloud::new(points))
 }
 
 /// Export a filtration to a CSV file.
