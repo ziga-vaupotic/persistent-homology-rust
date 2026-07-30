@@ -1,5 +1,4 @@
 use persistent_homology::construction::vietoris_rips;
-use persistent_homology::geometry::EuclideanInnerProduct;
 use persistent_homology::io::csv::import_point_cloud_csv;
 use persistent_homology::topology::Cell;
 use plotters::prelude::*;
@@ -9,7 +8,7 @@ use std::path::Path;
 fn main() -> Result<(), Box<dyn std::error::Error>> {
     let path = Path::new("examples/data/circle.csv");
 
-    let pointset = import_point_cloud_csv::<2, EuclideanInnerProduct>(path, EuclideanInnerProduct)?;
+    let pointset = import_point_cloud_csv::<2>(&path).unwrap();
     let filtration = vietoris_rips(&pointset, None, Some(2));
     let epsilon = 1.0;
     let complex_at_epsilon = filtration.complex_at(epsilon);
