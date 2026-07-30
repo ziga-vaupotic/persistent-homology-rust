@@ -1,4 +1,4 @@
-use crate::geometry::{EuclideanCloud, Point, PointCloud};
+use crate::geometry::{Space, Point, PointCloud};
 use nalgebra::SVector;
 use std::{error::Error, fs::File, io::Write, path::Path};
 
@@ -31,9 +31,9 @@ use csv;
 ///
 /// let cloud = import_point_cloud_csv::<2, _>(Path::new("points.csv"), EuclideanInnerProduct)?;
 /// ```
-pub fn import_point_cloud_csv<const N: usize>(
+pub fn import_point_cloud_csv<const N: usize, S : Space<Element=Point<N>>>(
     path: &Path,
-) -> Result<EuclideanCloud<N>, Box<dyn Error>> {
+) -> Result<PointCloud<S>, Box<dyn Error>> {
     let file = File::open(path)?;
     let mut rdr = csv::ReaderBuilder::new()
         .has_headers(false)
