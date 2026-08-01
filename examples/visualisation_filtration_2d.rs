@@ -1,7 +1,7 @@
 use persistent_homology::construction::vietoris_rips;
+use persistent_homology::geometry::EuclideanSpace;
 use persistent_homology::io::csv::import_point_cloud_csv;
 use persistent_homology::topology::Cell;
-use persistent_homology::geometry::EuclideanSpace;
 use plotters::prelude::*;
 
 use std::path::Path;

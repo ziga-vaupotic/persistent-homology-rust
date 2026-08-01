@@ -1,28 +1,44 @@
-use super::{InnerProductSpace, Space, VectorSpace};
+use super::{Ball, InnerProductSpace, PointCloud, Set, Space, VectorSpace};
 use nalgebra::SVector;
 use std::ops::{Add, Mul, Sub};
 
+pub type EuclideanBall<const N: usize> = Ball<EuclideanSpace<N>>;
+pub type EuclideanCloud<const N: usize> = PointCloud<EuclideanSpace<N>>;
+
 // TODO docs
-#[derive(Clone)]
+#[derive(Clone, Copy)]
 pub struct EuclideanSpace<const N: usize>;
 
 impl<const N: usize> Space for EuclideanSpace<N> {
+    type Set = RealCoordinateSpace<N>;
+}
+
+impl<const N: usize> InnerProductSpace for EuclideanSpace<N> {
+    fn dot(a: &Point<N>, b: &Point<N>) -> f64 {
+        a.coords.dot(&b.coords)
+    }
+}
+
+#[derive(Clone, Copy)]
+pub struct RealCoordinateSpace<const N: usize>;
+
+impl<const N: usize> Set for RealCoordinateSpace<N> {
     type Element = Point<N>;
 }
 
-impl<const N: usize> VectorSpace for EuclideanSpace<N> {
+impl<const N: usize> VectorSpace for RealCoordinateSpace<N> {
     type Scalar = f64;
 
-    fn add(a: &Self::Element, b: &Self::Element) -> Self::Element {
-        Point::new(a.coords + b.coords)
+    fn add(a: &Point<N>, b: &Point<N>) -> Point<N> {
+        a + b
     }
 
-    fn sub(a: &Self::Element, b: &Self::Element) -> Self::Element {
-        Point::new(a.coords - b.coords)
+    fn sub(a: &Point<N>, b: &Point<N>) -> Point<N> {
+        a - b
     }
 
-    fn mul(a: &Self::Element, b: &Self::Scalar) -> Self::Element {
-        Point::new(*b * a.coords)
+    fn mul(a: &Point<N>, b: &f64) -> Point<N> {
+        *b * a
     }
 
     fn dim() -> usize {
@@ -30,13 +46,7 @@ impl<const N: usize> VectorSpace for EuclideanSpace<N> {
     }
 }
 
-impl<const N: usize> InnerProductSpace for EuclideanSpace<N> {
-    fn dot(a: &Self::Element, b: &Self::Element) -> f64 {
-        a.coords.dot(&b.coords)
-    }
-}
-
-impl<const N: usize> EuclideanSpace<N> {
+impl<const N: usize> RealCoordinateSpace<N> {
     pub fn standard_unit(i: usize) -> Point<N> {
         assert!(i < N);
         let mut coords = SVector::zeros();
@@ -46,8 +56,7 @@ impl<const N: usize> EuclideanSpace<N> {
     }
 
     pub fn zero() -> Point<N> {
-        let coords = SVector::zeros();
-        Point::new(coords)
+        Point::new(SVector::zeros())
     }
 }
 
@@ -72,7 +81,7 @@ impl<const N: usize> Add<&Point<N>> for &Point<N> {
     type Output = Point<N>;
 
     fn add(self, right: &Point<N>) -> Point<N> {
-        EuclideanSpace::add(self, right)
+        Point::new(self.coords + right.coords)
     }
 }
 
@@ -80,7 +89,7 @@ impl<const N: usize> Sub<&Point<N>> for &Point<N> {
     type Output = Point<N>;
 
     fn sub(self, right: &Point<N>) -> Point<N> {
-        EuclideanSpace::sub(self, right)
+        Point::new(self.coords - right.coords)
     }
 }
 
@@ -88,6 +97,6 @@ impl<const N: usize> Mul<&Point<N>> for f64 {
     type Output = Point<N>;
 
     fn mul(self, right: &Point<N>) -> Point<N> {
-        EuclideanSpace::mul(right, &self)
+        Point::new(self * right.coords)
     }
 }

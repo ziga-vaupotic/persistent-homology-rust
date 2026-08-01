@@ -1,13 +1,9 @@
 // TODO docs
-pub trait Space {
-    type Element;
+pub trait Set {
+    type Element: Clone;
 }
 
-pub trait MetricSpace: Space {
-    fn distance(a: &Self::Element, b: &Self::Element) -> f64;
-}
-
-pub trait VectorSpace: Space {
+pub trait VectorSpace: Set {
     type Scalar;
 
     fn add(a: &Self::Element, b: &Self::Element) -> Self::Element;
@@ -16,25 +12,30 @@ pub trait VectorSpace: Space {
     fn dim() -> usize;
 }
 
-pub trait NormSpace: VectorSpace {
-    fn norm(a: &Self::Element) -> f64;
+pub trait Space {
+    type Set: Set;
 }
 
-impl<T: NormSpace> MetricSpace for T {
-    fn distance(a: &Self::Element, b: &Self::Element) -> f64 {
-        Self::norm(&Self::sub(a, b))
+pub trait MetricSpace: Space {
+    fn distance(a: &<Self::Set as Set>::Element, b: &<Self::Set as Set>::Element) -> f64;
+}
+
+pub trait NormedSpace: Space<Set: VectorSpace> {
+    fn norm(a: &<Self::Set as Set>::Element) -> f64;
+}
+
+impl<T: NormedSpace> MetricSpace for T {
+    fn distance(a: &<Self::Set as Set>::Element, b: &<Self::Set as Set>::Element) -> f64 {
+        Self::norm(&Self::Set::sub(a, b))
     }
 }
 
-pub trait InnerProductSpace: VectorSpace<Scalar = f64> {
-    fn dot(a: &Self::Element, b: &Self::Element) -> Self::Scalar;
-    fn norm_squared(a: &Self::Element) -> f64 {
-        Self::dot(a, a)
-    }
+pub trait InnerProductSpace: Space<Set: VectorSpace> {
+    fn dot(a: &<Self::Set as Set>::Element, b: &<Self::Set as Set>::Element) -> f64;
 }
 
-impl<T: InnerProductSpace> NormSpace for T {
-    fn norm(a: &Self::Element) -> f64 {
-        Self::norm_squared(a).sqrt()
+impl<T: InnerProductSpace> NormedSpace for T {
+    fn norm(a: &<Self::Set as Set>::Element) -> f64 {
+        Self::dot(a, a).sqrt()
     }
 }

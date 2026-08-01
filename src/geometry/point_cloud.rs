@@ -1,12 +1,12 @@
-use super::{EuclideanSpace, Space};
+use super::{Set, Space};
 
 // TODO docs
 pub struct PointCloud<S: Space> {
-    elements: Vec<S::Element>,
+    elements: Vec<<S::Set as Set>::Element>,
 }
 
 impl<S: Space> PointCloud<S> {
-    pub fn new(elements: Vec<S::Element>) -> Self {
+    pub fn new(elements: Vec<<S::Set as Set>::Element>) -> Self {
         Self { elements }
     }
 
@@ -14,7 +14,7 @@ impl<S: Space> PointCloud<S> {
         self.elements.len()
     }
 
-    pub fn get(&self, i: usize) -> &S::Element {
+    pub fn get(&self, i: usize) -> &<S::Set as Set>::Element {
         &self.elements[i]
     }
 
@@ -22,5 +22,3 @@ impl<S: Space> PointCloud<S> {
         self.elements.is_empty()
     }
 }
-
-pub type EuclideanCloud<const N: usize> = PointCloud<EuclideanSpace<N>>;

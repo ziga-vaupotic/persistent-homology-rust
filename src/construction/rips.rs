@@ -58,7 +58,7 @@ pub fn vietoris_rips<M: MetricSpace>(
 
 fn rips_radius<M: MetricSpace>(
     clique: &[usize],
-    _space: &PointCloud<M>,
+    _cloud: &PointCloud<M>,
     cons: &Construction,
 ) -> Option<f64> {
     let mut max_d = 0.0;

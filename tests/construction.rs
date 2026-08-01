@@ -1,14 +1,12 @@
 use nalgebra::SVector;
 use persistent_homology::construction::{cech_exact, vietoris_rips};
-use persistent_homology::geometry::{Point, PointCloud};
+use persistent_homology::geometry::{EuclideanCloud, Point, RealCoordinateSpace};
 
 use std::f64::consts::PI;
 
 #[test]
 fn single_point() {
-    let space = PointCloud::new(vec![Point::<3>::new(SVector::<f64, 3>::from_row_slice(&[
-        0.0, 0.0, 0.0,
-    ]))]);
+    let space = EuclideanCloud::new(vec![Point::new([0.0, 0.0, 0.0])]);
 
     let rips_filtration = vietoris_rips(&space, None, None);
     let cech_filtration = cech_exact(&space, None, None);
@@ -26,12 +24,9 @@ fn triangle() {
     let mut point_set: Vec<Point<2>> = Vec::new();
     for i in 0..n {
         let phi = 2.0 * PI * i as f64 / n as f64;
-        point_set.push(Point::<2>::new(SVector::<f64, 2>::from_row_slice(&[
-            phi.cos(),
-            phi.sin(),
-        ])));
+        point_set.push(Point::new([phi.cos(), phi.sin()]));
     }
-    let space = PointCloud::new(point_set);
+    let space = EuclideanCloud::new(point_set);
 
     let rips_filtration = vietoris_rips(&space, None, None);
     let cech_filtration = cech_exact(&space, None, None);
@@ -81,12 +76,10 @@ fn grid_2_dim() {
     let mut point_set: Vec<Point<2>> = Vec::new();
     for i in 0..n {
         for j in 0..n {
-            point_set.push(Point::<2>::new(SVector::<f64, 2>::from_row_slice(&[
-                i as f64, j as f64,
-            ])));
+            point_set.push(Point::new([i as f64, j as f64]));
         }
     }
-    let space = PointCloud::new(point_set);
+    let space = EuclideanCloud::new(point_set);
     let rips_filtration = vietoris_rips(&space, Some(2.0_f64.sqrt()), None);
     let cech_filtration = cech_exact(&space, Some(2.0_f64.sqrt() / 2.0), None);
 
@@ -110,13 +103,11 @@ fn grid_3_dim() {
     for i in 0..n {
         for j in 0..n {
             for k in 0..n {
-                point_set.push(Point::<3>::new(SVector::<f64, 3>::from_row_slice(&[
-                    i as f64, j as f64, k as f64,
-                ])));
+                point_set.push(Point::new([i as f64, j as f64, k as f64]));
             }
         }
     }
-    let space = PointCloud::new(point_set);
+    let space = EuclideanCloud::new(point_set);
     let rips_filtration = vietoris_rips(&space, Some(2.0_f64.sqrt()), None);
     let cech_filtration = cech_exact(&space, Some(2.0_f64.sqrt() / 2.0), None);
 

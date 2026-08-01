@@ -1,5 +1,5 @@
 use crate::construction::{Construction, cliques};
-use crate::geometry::{EuclideanCloud, EuclideanSpace, seb};
+use crate::geometry::{EuclideanCloud, seb};
 use crate::topology::{Filtration, Simplex};
 
 /// Construct a Čech complex from a point cloud.
@@ -57,7 +57,6 @@ pub fn cech<const N: usize>(
     } else {
         in_ball_approx
     };
-
     cliques::find_all(cloud, in_ball, &mut cons);
 
     Filtration::new(cons.simplices)
@@ -68,19 +67,19 @@ pub fn cech<const N: usize>(
 /// This is a convenience wrapper around `cech()` with `radius_tolerance = 0.0`.
 /// Use this for guaranteed accuracy, though it may be slower for large cliques.
 pub fn cech_exact<const N: usize>(
-    space: &EuclideanCloud<N>,
+    cloud: &EuclideanCloud<N>,
     max_epsilon: Option<f64>,
     max_dim: Option<usize>,
 ) -> Filtration<Simplex> {
-    cech(space, max_epsilon, max_dim, 0.0)
+    cech(cloud, max_epsilon, max_dim, 0.0)
 }
 
 fn in_ball_approx<const N: usize>(
     clique: &[usize],
-    space: &EuclideanCloud<N>,
+    cloud: &EuclideanCloud<N>,
     cons: &Construction,
 ) -> Option<f64> {
-    let miniball = seb::larsson(clique, cons.tolerance, space);
+    let miniball = seb::larsson(clique, cons.tolerance, cloud);
     if miniball.r() > cons.max_epsilon {
         return None;
     }
@@ -90,11 +89,11 @@ fn in_ball_approx<const N: usize>(
 // TODO change algorithm used based on dimesion and size of clique
 fn in_ball_exact<const N: usize>(
     clique: &[usize],
-    space: &EuclideanCloud<N>,
+    cloud: &EuclideanCloud<N>,
     cons: &Construction,
 ) -> Option<f64> {
     let clique_vec = clique.to_vec();
-    let miniball = seb::welzl(&clique_vec, space);
+    let miniball = seb::welzl(&clique_vec, cloud);
     if miniball.r() > cons.max_epsilon {
         return None;
     }

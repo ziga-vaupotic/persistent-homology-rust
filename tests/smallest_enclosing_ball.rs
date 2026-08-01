@@ -1,6 +1,6 @@
 use nalgebra::SVector;
 use persistent_homology::geometry::{
-    EuclideanCloud, EuclideanSpace, MetricSpace, Point, PointCloud, seb::*,
+    EuclideanCloud, EuclideanSpace, MetricSpace, Point, RealCoordinateSpace, seb::*,
 };
 
 use std::f64::consts::PI;
@@ -30,7 +30,7 @@ fn in_2_dimensions() {
     let welzl_ball = welzl(&points, &space);
     let larsson_ball = larsson(&points, 0.01, &space);
 
-    let center = EuclideanSpace::<2>::zero();
+    let center = RealCoordinateSpace::<2>::zero();
     let radius = 1.0;
 
     assert!((welzl_ball.o() - &center).is_zero());
@@ -47,9 +47,9 @@ fn in_3_plus_dimensions() {
         macro_rules! run_dim {
             ($d:literal) => {{
                 let point_set: Vec<Point<$d>> = (0..$d)
-                    .map(|i| EuclideanSpace::<$d>::standard_unit(i))
+                    .map(|i| RealCoordinateSpace::<$d>::standard_unit(i))
                     .collect();
-                let space = PointCloud::new(point_set);
+                let space = EuclideanCloud::new(point_set);
 
                 for i in 1..=$d {
                     let points: Vec<usize> = (0..i).collect();
